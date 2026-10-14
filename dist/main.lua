@@ -60,7 +60,7 @@ function Signal:Fire(...)
     end
 end
 
-function Signal:Wait(): ...any
+function Signal:Wait()
     local thread = coroutine.running()
     self:Once(function(...)
         task.spawn(thread, ...)
@@ -81,11 +81,7 @@ __M["Maid"]=function()
 local Maid = {}
 Maid.__index = Maid
 
- | {
-    disconnect,
-} | {
-    Disconnect,
-} | RBXScriptConnection | Instance | () -> ()
+
 
 function Maid.new()
     return setmetatable({
@@ -182,7 +178,6 @@ Tween.Bounce = TweenInfo.new(0.3,  Enum.EasingStyle.Back,        Enum.EasingDire
 Tween.Pop    = TweenInfo.new(0.12, Enum.EasingStyle.Back,        Enum.EasingDirection.Out)
 Tween.Settle = TweenInfo.new(0.28, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 Tween.Slug   = TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
-
 
 
 
@@ -315,7 +310,7 @@ local CoreGui    = game:GetService("CoreGui")
 local Players    = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 
-local function SafeParent(gui): ()
+local function SafeParent(gui)
 	if RunService:IsStudio() and not RunService:IsRunning() then
 		local ok = pcall(function()
 			local existing = StarterGui:FindFirstChild(gui.Name)
