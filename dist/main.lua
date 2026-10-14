@@ -3939,7 +3939,7 @@ function Tab:AddSection(title, column)
 	self._sectionCount = self._sectionCount + 1
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
-	sec._frame.LayoutOrder = self._sectionCount
+	sec.Container.LayoutOrder = self._sectionCount
 	return sec
 end
 
