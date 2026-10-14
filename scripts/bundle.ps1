@@ -24,6 +24,7 @@ $order = @(
     "src\Elements\Colorpicker.lua",
     "src\Elements\Paragraph.lua",
     "src\Elements\Divider.lua",
+    "src\Components\Notification.lua",
     "src\Components\Section.lua",
     "src\Components\LoadingScreen.lua",
     "src\Components\FloatingNav.lua",
@@ -79,8 +80,9 @@ foreach ($rel in $order) {
     # Strip parameter/variable type annotations: name: Type (before , or ) only)
     $raw = [regex]::Replace($raw, '(\w)\s*:\s*((?:[\w.?]+(?:<[^>]*>)?|\([^)]*\)(?:\s*->\s*[\w.?<>()]+)?)(?:\s*[|&]\s*[\w.?]+(?:<[^>]*>)?)*)(?=\s*[,)])', '$1')
 
-    # Strip table type annotations on parameters: param: { ... }? (handles one level of nesting)
+    # Strip table type annotations on parameters: param: { ... }? (single-line and multi-line)
     $raw = [regex]::Replace($raw, '(\w|\.\.\.)\s*:\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)?\}\??(?=\s*[,)])', '$1')
+    $raw = [regex]::Replace($raw, '(?s)(\w)\s*:\s*\{[\s\S]*?\}(?=\s*[\n,)])', '$1')
 
     # Strip variadic type annotations: ...: Type
     $raw = [regex]::Replace($raw, '\.\.\.\s*:\s*\w+', '...')

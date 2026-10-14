@@ -206,7 +206,7 @@ function Tween.SpringAnimate(instance, props, preset)
 	local damper = if preset then preset.Damper else 0.78
 	local inst   = instance
 
-	local channels: { Channel } = {}
+	local channels
 
 	for key, target in props do
 		local current = inst[key]
@@ -2030,6 +2030,90 @@ end
 return Divider
 end
 
+__M["Notification"]=function()
+-- Toast Notification queue and rendering container
+
+local Creator = __R("Creator")
+local Tween = __R("Tween")
+
+local Notification = {
+    Container = nil,
+}
+
+function Notification.Init(screenGui)
+    if Notification.Container then return end
+
+    Notification.Container = Creator.New("Frame", {
+        Name = "NotificationQueue",
+        AnchorPoint = Vector2.new(1, 1),
+        Position = UDim2.new(1, -24, 1, -24),
+        Size = UDim2.fromOffset(300, 400),
+        BackgroundTransparency = 1,
+        ZIndex = 999,
+        Parent = screenGui,
+    }, {
+        Creator.New("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+            Padding = UDim.new(0, 8),
+        }),
+    })
+end
+
+function Notification.Notify(config)
+    if not Notification.Container then return end
+
+    local card = Creator.New("Frame", {
+        Size = UDim2.new(1, 0, 0, 64),
+        BackgroundTransparency = 0.1,
+        ThemeTag = {
+            BackgroundColor3 = "Card",
+        },
+        Parent = Notification.Container,
+    }, {
+        Creator.New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+        Creator.New("UIStroke", {
+            Thickness = 1,
+            ThemeTag = { Color = "Border" },
+        }),
+        Creator.New("TextLabel", {
+            Name = "Title",
+            Position = UDim2.fromOffset(12, 10),
+            Size = UDim2.new(1, -24, 0, 18),
+            BackgroundTransparency = 1,
+            Text = config.Title or "Notification",
+            TextSize = 14,
+            FontFace = Font.fromEnum(Enum.Font.GothamBold),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ThemeTag = { TextColor3 = "Text" },
+        }),
+        Creator.New("TextLabel", {
+            Name = "Content",
+            Position = UDim2.fromOffset(12, 30),
+            Size = UDim2.new(1, -24, 0, 24),
+            BackgroundTransparency = 1,
+            Text = config.Content or "",
+            TextSize = 12,
+            TextWrapped = true,
+            FontFace = Font.fromEnum(Enum.Font.Gotham),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ThemeTag = { TextColor3 = "SubText" },
+        }),
+    })
+
+    local duration = config.Duration or 3.5
+    task.delay(duration, function()
+        if card.Parent then
+            local tw = Tween.Play(card, Tween.Fast, { BackgroundTransparency = 1 })
+            tw.Completed:Wait()
+            card:Destroy()
+        end
+    end)
+end
+
+return Notification
+end
+
 __M["Section"]=function()
 local Creator      = __R("Creator")
 local ThemeManager = __R("Manager")
@@ -2259,7 +2343,7 @@ function LoadingScreen.new(config)
 	dotLayout.Padding          = UDim.new(0, 6)
 	dotLayout.Parent           = dotRow
 
-	local dots: { Frame } = {}
+	local dots
 	for _ = 1, 3 do
 		local dot           = Instance.new("Frame")
 		dot.Size            = UDim2.fromOffset(4, 4)
@@ -2772,7 +2856,7 @@ function SearchBar:_Refresh(query)
 	end
 
 	local lower = string.lower(query)
-	local matches: { SearchEntry } = {}
+	local matches
 	for _, e in ipairs(self._entries) do
 		if string.find(string.lower(e.Label), lower, 1, true) then
 			table.insert(matches, e)
@@ -3854,12 +3938,7 @@ local function makeTabApi(lib, tab, searchBar)
 	return tabApi
 end
 
-function Library:CreateWindow(config: {
-	Title,
-	Loading,
-	Search,
-	Theme,
-})
+function Library:CreateWindow(config)
 	if config.Theme then
 		ThemeManager.SetTheme(config.Theme)
 	end
