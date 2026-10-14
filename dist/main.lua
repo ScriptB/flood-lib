@@ -1193,9 +1193,11 @@ function Dropdown.Create(parent, id, config)
 		if config.Callback then task.spawn(config.Callback, val) end
 		closeList()
 	end
-	dropdownObj.SetValue = selectValue
-	dropdownObj.SetValues = function(newValues)
-		values = newValues or {}
+	dropdownObj.SetValue = function(value, alternateValue)
+		selectValue(alternateValue or value)
+	end
+	dropdownObj.SetValues = function(newValues, alternateValues)
+		values = alternateValues or newValues or {}
 		optionListHeight = #values * 22 + 8
 		if not table.find(values, selected) then
 			selectValue(values[1] or "")
