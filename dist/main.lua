@@ -3804,12 +3804,14 @@ return Window
 end
 
 __M["init"]=function()
-local ThemeManager = __R("Manager")
-local Window       = __R("Window")
+local ThemeManager   = __R("Manager")
+local Window         = __R("Window")
+local Notification   = __R("Notification")
 
 local Library = {
-	Flags  = {} :: { [string]: any },
-	Themes = ThemeManager.Themes,
+	Flags   = {} :: { [string]: any },
+	Options = {} :: { [string]: any },
+	Themes  = ThemeManager.Themes,
 }
 
 local function bindFlag(lib: typeof(Library), id: string, obj: any)
@@ -3829,6 +3831,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddToggle(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		if searchBar then
 			searchBar:RegisterElement({ Id = id, Label = cfg.Title, TabId = "", SelectFn = function() end })
 		end
@@ -3841,6 +3844,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddSlider(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		if searchBar then
 			searchBar:RegisterElement({ Id = id, Label = cfg.Title, TabId = "", SelectFn = function() end })
 		end
@@ -3860,6 +3864,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddDropdown(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		if searchBar then
 			searchBar:RegisterElement({ Id = id, Label = cfg.Title, TabId = "", SelectFn = function() end })
 		end
@@ -3871,6 +3876,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddInput(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		return obj
 	end
 
@@ -3879,6 +3885,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddKeybind(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		return obj
 	end
 
@@ -3887,6 +3894,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 	}): any
 		local obj = sec:AddColorpicker(id, cfg)
 		bindFlag(lib, id, obj)
+		lib.Options[id] = obj
 		return obj
 	end
 
@@ -3932,6 +3940,7 @@ function Library:CreateWindow(config: {
 
 	local win        = Window.new(config)
 	local searchBar  = win:GetSearchBar()
+	Notification.Init(win._gui)
 
 	local winApi = {}
 
@@ -3968,6 +3977,10 @@ function Library:CreateWindow(config: {
 		win:ToggleMinimize()
 	end
 
+	function winApi:Unload()
+		win:Destroy()
+	end
+
 	function winApi:Destroy()
 		win:Destroy()
 	end
@@ -3991,6 +4004,16 @@ end
 function Library:RegisterTheme(name: string, themeTable: { [string]: any })
 	ThemeManager.RegisterTheme(name, themeTable)
 	self.Themes = ThemeManager.Themes
+end
+
+function Library:Notify(config: { Title: string, Content: string, Duration: number? })
+	Notification.Notify(config)
+end
+
+function Library:Unload()
+	if typeof(getgenv) == "function" then
+		getgenv().FloodLibrary = nil
+	end
 end
 
 if typeof(getgenv) == "function" then
