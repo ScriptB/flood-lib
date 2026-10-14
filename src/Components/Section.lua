@@ -122,9 +122,9 @@ function Section:AddColorpicker(id, config)
 end
 
 function Section:AddParagraph(config)
-    local frame = Paragraph.Create(self.Container, config)
-    frame.LayoutOrder = nextOrder(self)
-    return frame
+    local paragraph = Paragraph.Create(self.Container, config)
+    paragraph.Container.LayoutOrder = nextOrder(self)
+    return paragraph
 end
 
 function Section:AddDivider()

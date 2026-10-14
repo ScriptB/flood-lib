@@ -124,6 +124,14 @@ function Dropdown.Create(parent, id, config)
 		closeList()
 	end
 	dropdownObj.SetValue = selectValue
+	dropdownObj.SetValues = function(newValues)
+		values = newValues or {}
+		optionListHeight = #values * 22 + 8
+		if not table.find(values, selected) then
+			selectValue(values[1] or "")
+		end
+		if opened then closeList() end
+	end
 
 	local function buildOverlay()
 		local screenGui = container:FindFirstAncestorOfClass("ScreenGui")

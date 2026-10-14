@@ -61,7 +61,18 @@ function Paragraph.Create(parent, config)
         }),
     })
 
-    return container
+    local titleLabel = container:FindFirstChild("Title")
+    local contentLabel = container:FindFirstChild("Content")
+
+    return {
+        Container = container,
+        SetTitle = function(_, text)
+            titleLabel.Text = text
+        end,
+        SetText = function(_, text)
+            contentLabel.Text = text
+        end,
+    }
 end
 
 return Paragraph

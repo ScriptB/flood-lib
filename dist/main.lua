@@ -1194,6 +1194,14 @@ function Dropdown.Create(parent, id, config)
 		closeList()
 	end
 	dropdownObj.SetValue = selectValue
+	dropdownObj.SetValues = function(newValues)
+		values = newValues or {}
+		optionListHeight = #values * 22 + 8
+		if not table.find(values, selected) then
+			selectValue(values[1] or "")
+		end
+		if opened then closeList() end
+	end
 
 	local function buildOverlay()
 		local screenGui = container:FindFirstAncestorOfClass("ScreenGui")
@@ -2035,7 +2043,18 @@ function Paragraph.Create(parent, config)
         }),
     })
 
-    return container
+    local titleLabel = container:FindFirstChild("Title")
+    local contentLabel = container:FindFirstChild("Content")
+
+    return {
+        Container = container,
+        SetTitle = function(_, text)
+            titleLabel.Text = text
+        end,
+        SetText = function(_, text)
+            contentLabel.Text = text
+        end,
+    }
 end
 
 return Paragraph
@@ -2430,9 +2449,9 @@ function Section:AddColorpicker(id, config)
 end
 
 function Section:AddParagraph(config)
-    local frame = Paragraph.Create(self.Container, config)
-    frame.LayoutOrder = nextOrder(self)
-    return frame
+    local paragraph = Paragraph.Create(self.Container, config)
+    paragraph.Container.LayoutOrder = nextOrder(self)
+    return paragraph
 end
 
 function Section:AddDivider()
