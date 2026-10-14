@@ -46,4 +46,15 @@ local function SafeParent(gui)
 	end)
 end
 
-return SafeParent
+local function Create(name)
+	local gui = Instance.new("ScreenGui")
+	gui.Name = name
+	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	SafeParent(gui)
+	return gui
+end
+
+return {
+	Create = Create,
+}
