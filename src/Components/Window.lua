@@ -224,7 +224,7 @@ function Window.new(config)
 	self._dragHandle = dragHandle
 
 	closeBtn.MouseButton1Click:Connect(function()
-		self:Hide()
+		self:ToggleMinimize()
 	end)
 	minimizeBtn.MouseButton1Click:Connect(function()
 		self:ToggleMinimize()
