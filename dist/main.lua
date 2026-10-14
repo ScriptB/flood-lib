@@ -185,10 +185,6 @@ Tween.SpringPop    = { Speed = 32, Damper = 0.82 }
 Tween.SpringSettle = { Speed = 20, Damper = 0.78 }
 Tween.SpringSlug   = { Speed = 14, Damper = 0.72 }
 
-	tick,
-	settled,
-	finalize,
-}
 
 function Tween.Play(instance, tweenInfo, properties)
 	local tween = TweenService:Create(instance, tweenInfo, properties)
@@ -2410,14 +2406,6 @@ local NAV_W  = 62
 local BTN_SZ = 44
 local CORNER = 8
 local GAP    = 12
-
-
-
-	id,
-	rail,
-	onActivate,
-	onDeactivate,
-}
 
 local FloatingNav = {}
 FloatingNav.__index = FloatingNav
