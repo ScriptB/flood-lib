@@ -12,27 +12,18 @@ __M["Signal"]=function()
 local Signal = {}
 Signal.__index = Signal
 
-export type Connection = {
-    Disconnect: (self: Connection) -> (),
-    Connected: boolean,
-}
 
-export type Signal<T...> = {
-    Connect: (self: Signal<T...>, fn: (T...) -> ()) -> Connection,
-    Once: (self: Signal<T...>, fn: (T...) -> ()) -> Connection,
-    Fire: (self: Signal<T...>, T...) -> (),
-    Wait: (self: Signal<T...>) -> T...,
-    Destroy: (self: Signal<T...>) -> (),
-}
 
-function Signal.new<T...>(): Signal<T...>
+
+
+function Signal.new()
     local self = setmetatable({
         _handlers = {},
     }, Signal)
-    return (self :: any)
+    return (self)
 end
 
-function Signal:Connect(fn: (...any) -> ()): Connection
+function Signal:Connect(fn)
     table.insert(self._handlers, fn)
     local connected = true
     local handlers = self._handlers
@@ -54,8 +45,8 @@ function Signal:Connect(fn: (...any) -> ()): Connection
     return conn
 end
 
-function Signal:Once(fn: (...any) -> ()): Connection
-    local conn: Connection
+function Signal:Once(fn)
+    local conn
     conn = self:Connect(function(...)
         conn:Disconnect()
         fn(...)
@@ -63,7 +54,7 @@ function Signal:Once(fn: (...any) -> ()): Connection
     return conn
 end
 
-function Signal:Fire(...: any)
+function Signal:Fire(...)
     for _, handler in ipairs(table.clone(self._handlers)) do
         task.spawn(handler, ...)
     end
@@ -90,12 +81,10 @@ __M["Maid"]=function()
 local Maid = {}
 Maid.__index = Maid
 
-export type Destructible = {
-    Destroy: (self: any) -> (),
+ | {
+    disconnect,
 } | {
-    disconnect: (self: any) -> (),
-} | {
-    Disconnect: (self: any) -> (),
+    Disconnect,
 } | RBXScriptConnection | Instance | () -> ()
 
 function Maid.new()
@@ -104,7 +93,7 @@ function Maid.new()
     }, Maid)
 end
 
-function Maid:GiveTask(taskItem: Destructible): number
+function Maid:GiveTask(taskItem)
     local id = #self._tasks + 1
     self._tasks[id] = taskItem
     return id
@@ -144,18 +133,9 @@ __M["Spring"]=function()
 local Spring = {}
 Spring.__index = Spring
 
-export type Spring = {
-	Target:   number,
-	Position: number,
-	Velocity: number,
-	Speed:    number,
-	Damper:   number,
-	Step:       (self: Spring, dt: number) -> number,
-	SetTarget:  (self: Spring, target: number) -> (),
-	IsSettled:  (self: Spring) -> boolean,
-}
 
-function Spring.new(initial: number?, speed: number?, damper: number?): Spring
+
+function Spring.new(initial, speed, damper)
 	local self = setmetatable({
 		Target   = initial or 0,
 		Position = initial or 0,
@@ -163,14 +143,14 @@ function Spring.new(initial: number?, speed: number?, damper: number?): Spring
 		Speed    = speed  or 15,
 		Damper   = damper or 0.85,
 	}, Spring)
-	return (self :: any)
+	return (self)
 end
 
-function Spring:SetTarget(target: number)
+function Spring:SetTarget(target)
 	self.Target = target
 end
 
-function Spring:Step(dt: number): number
+function Spring:Step(dt)
 	local d    = self.Damper
 	local s    = self.Speed
 	local diff = self.Target - self.Position
@@ -180,7 +160,7 @@ function Spring:Step(dt: number): number
 	return self.Position
 end
 
-function Spring:IsSettled(): boolean
+function Spring:IsSettled()
 	return math.abs(self.Target - self.Position) < 0.002
 		and math.abs(self.Velocity) < 0.002
 end
@@ -203,29 +183,28 @@ Tween.Pop    = TweenInfo.new(0.12, Enum.EasingStyle.Back,        Enum.EasingDire
 Tween.Settle = TweenInfo.new(0.28, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 Tween.Slug   = TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 
-export type SpringPreset = { Speed: number, Damper: number }
-export type SpringHandle = { Cancel: () -> () }
 
-Tween.SpringPop    = { Speed = 32, Damper = 0.82 } :: SpringPreset
-Tween.SpringSettle = { Speed = 20, Damper = 0.78 } :: SpringPreset
-Tween.SpringSlug   = { Speed = 14, Damper = 0.72 } :: SpringPreset
 
-type Channel = {
-	tick:     (dt: number) -> (),
-	settled:  () -> boolean,
-	finalize: () -> (),
+
+Tween.SpringPop    = { Speed = 32, Damper = 0.82 }
+Tween.SpringSettle = { Speed = 20, Damper = 0.78 }
+Tween.SpringSlug   = { Speed = 14, Damper = 0.72 }
+
+	tick,
+	settled,
+	finalize,
 }
 
-function Tween.Play(instance: Instance, tweenInfo: TweenInfo, properties: { [string]: any }): Tween
+function Tween.Play(instance, tweenInfo, properties)
 	local tween = TweenService:Create(instance, tweenInfo, properties)
 	tween:Play()
 	return tween
 end
 
-function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, preset: SpringPreset?): SpringHandle
+function Tween.SpringAnimate(instance, props, preset)
 	local speed  = if preset then preset.Speed  else 20
 	local damper = if preset then preset.Damper else 0.78
-	local inst   = instance :: any
+	local inst   = instance
 
 	local channels: { Channel } = {}
 
@@ -234,16 +213,16 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 		local vtype   = typeof(current)
 
 		if vtype == "number" then
-			local s = Spring.new(current :: number, speed, damper)
-			s:SetTarget(target :: number)
+			local s = Spring.new(current, speed, damper)
+			s:SetTarget(target)
 			table.insert(channels, {
 				tick     = function(dt) s:Step(dt); inst[key] = s.Position end,
 				settled  = function() return s:IsSettled() end,
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "Color3" then
-			local c  = current :: Color3
-			local tg = target  :: Color3
+			local c  = current
+			local tg = target
 			local sr = Spring.new(c.R, speed, damper)
 			local sg = Spring.new(c.G, speed, damper)
 			local sb = Spring.new(c.B, speed, damper)
@@ -261,8 +240,8 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "UDim2" then
-			local c  = current :: UDim2
-			local tg = target  :: UDim2
+			local c  = current
+			local tg = target
 			local sxs = Spring.new(c.X.Scale,  speed, damper)
 			local sxo = Spring.new(c.X.Offset, speed, damper)
 			local sys = Spring.new(c.Y.Scale,  speed, damper)
@@ -284,8 +263,8 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "Vector2" then
-			local c  = current :: Vector2
-			local tg = target  :: Vector2
+			local c  = current
+			local tg = target
 			local sx = Spring.new(c.X, speed, damper)
 			local sy = Spring.new(c.Y, speed, damper)
 			sx:SetTarget(tg.X); sy:SetTarget(tg.Y)
@@ -298,9 +277,9 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 	end
 
 	local cancelled = false
-	local connection: RBXScriptConnection
+	local connection
 
-	connection = RunService.Heartbeat:Connect(function(dt: number)
+	connection = RunService.Heartbeat:Connect(function(dt)
 		if cancelled then
 			connection:Disconnect()
 			return
@@ -336,7 +315,7 @@ local CoreGui    = game:GetService("CoreGui")
 local Players    = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 
-local function SafeParent(gui: ScreenGui): ()
+local function SafeParent(gui): ()
 	if RunService:IsStudio() and not RunService:IsRunning() then
 		local ok = pcall(function()
 			local existing = StarterGui:FindFirstChild(gui.Name)
@@ -387,13 +366,13 @@ local UserInputService = game:GetService("UserInputService")
 
 local Drag = {}
 
-export type Handle = { Disconnect: () -> () }
 
-function Drag.Attach(handle: GuiObject, target: Frame, onMove: ((x: number, y: number) -> ())?): Handle
+
+function Drag.Attach(handle, target, onMove)
 	local active = false
 	local ox, oy = 0, 0
 
-	local c0 = handle.InputBegan:Connect(function(inp: InputObject)
+	local c0 = handle.InputBegan:Connect(function(inp)
 		if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 		active = true
 		local abs = target.AbsolutePosition
@@ -401,7 +380,7 @@ function Drag.Attach(handle: GuiObject, target: Frame, onMove: ((x: number, y: n
 		oy = abs.Y - inp.Position.Y
 	end)
 
-	local c1 = UserInputService.InputChanged:Connect(function(inp: InputObject)
+	local c1 = UserInputService.InputChanged:Connect(function(inp)
 		if not active or inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
 		local nx = math.round(inp.Position.X + ox)
 		local ny = math.round(inp.Position.Y + oy)
@@ -409,7 +388,7 @@ function Drag.Attach(handle: GuiObject, target: Frame, onMove: ((x: number, y: n
 		if onMove then onMove(nx, ny) end
 	end)
 
-	local c2 = UserInputService.InputEnded:Connect(function(inp: InputObject)
+	local c2 = UserInputService.InputEnded:Connect(function(inp)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			active = false
 		end
@@ -571,11 +550,11 @@ local Manager = {
     _changed = Signal.new(),
 }
 
-function Manager.GetTheme(name: string)
+function Manager.GetTheme(name)
     return Manager.Themes[name] or Manager.CurrentTheme
 end
 
-function Manager.SetTheme(name: string)
+function Manager.SetTheme(name)
     local theme = Manager.Themes[name]
     if not theme then return end
     Manager.CurrentTheme     = theme
@@ -583,11 +562,11 @@ function Manager.SetTheme(name: string)
     Manager._changed:Fire(theme)
 end
 
-function Manager.OnThemeChanged(fn: (theme: { [string]: any }) -> ()): { Disconnect: () -> () }
+function Manager.OnThemeChanged(fn)
     return Manager._changed:Connect(fn)
 end
 
-function Manager.RegisterTheme(name: string, themeTable: { [string]: any })
+function Manager.RegisterTheme(name, themeTable)
     Manager.Themes[name] = themeTable
 end
 
@@ -600,16 +579,16 @@ __M["Creator"]=function()
 local ThemeManager = __R("Manager")
 
 local Creator = {
-    Registry = {} :: { [Instance]: { [string]: string } },
+    Registry = {},
 }
 
-function Creator.New(className: string, properties: { [string]: any }, children: { Instance }?): Instance
+function Creator.New(className, properties, children)
     local instance = Instance.new(className)
     local themeTag = properties.ThemeTag
     properties.ThemeTag = nil
 
     for prop, val in pairs(properties) do
-        (instance :: any)[prop] = val
+        (instance)[prop] = val
     end
 
     if themeTag then
@@ -618,7 +597,7 @@ function Creator.New(className: string, properties: { [string]: any }, children:
         for prop, token in pairs(themeTag) do
             local color = currentTheme[token]
             if color ~= nil then
-                (instance :: any)[prop] = color
+                (instance)[prop] = color
             end
         end
     end
@@ -632,14 +611,14 @@ function Creator.New(className: string, properties: { [string]: any }, children:
     return instance
 end
 
-function Creator.UpdateTheme(newTheme: { [string]: any }?)
+function Creator.UpdateTheme(newTheme)
     local theme = newTheme or ThemeManager.CurrentTheme
     for instance, tagMap in pairs(Creator.Registry) do
         if instance.Parent ~= nil then
             for prop, token in pairs(tagMap) do
                 local color = theme[token]
                 if color ~= nil then
-                    (instance :: any)[prop] = color
+                    (instance)[prop] = color
                 end
             end
         else
@@ -659,7 +638,7 @@ local Tween        = __R("Tween")
 
 local Button = {}
 
-function Button.Create(parent: Instance, config: { Title: string, Description: string?, Callback: (() -> ())? })
+function Button.Create(parent, config)
 	local theme = ThemeManager.CurrentTheme
 
 	local hasDesc  = config.Description ~= nil
@@ -705,7 +684,7 @@ function Button.Create(parent: Instance, config: { Title: string, Description: s
 			Position               = UDim2.fromOffset(9, 20),
 			Size                   = UDim2.new(1, -32, 0, 13),
 			BackgroundTransparency = 1,
-			Text                   = config.Description :: string,
+			Text                   = config.Description,
 			TextSize               = 9,
 			FontFace               = Font.fromEnum(Enum.Font.Gotham),
 			TextXAlignment         = Enum.TextXAlignment.Left,
@@ -775,7 +754,7 @@ local Signal       = __R("Signal")
 
 local Toggle = {}
 
-function Toggle.Create(parent: Instance, id: string, config: { Title: string, Default: boolean?, Callback: ((boolean) -> ())? })
+function Toggle.Create(parent, id, config)
 	local value     = config.Default or false
 	local onChanged = Signal.new()
 	local theme     = ThemeManager.CurrentTheme
@@ -850,7 +829,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 		Tween.Play(container, Tween.Fast, { BackgroundColor3 = theme.ControlBg })
 	end)
 
-	local function updateVisual(state: boolean)
+	local function updateVisual(state)
 		if state then
 			Tween.SpringAnimate(knob,        { Position         = knobOn        }, Tween.SpringPop)
 			Tween.SpringAnimate(switchTrack, { BackgroundColor3 = theme.Accent  }, Tween.SpringSettle)
@@ -865,7 +844,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 		OnChanged = onChanged,
 	}
 
-	function toggleObj:SetValue(newVal: boolean)
+	function toggleObj:SetValue(newVal)
 		value = newVal
 		toggleObj.Value = newVal
 		updateVisual(newVal)
@@ -894,15 +873,7 @@ local Signal           = __R("Signal")
 
 local Slider = {}
 
-function Slider.Create(parent: Instance, id: string, config: {
-	Title:    string,
-	Min:      number,
-	Max:      number,
-	Default:  number?,
-	Rounding: number?,
-	Suffix:   string?,
-	Callback: ((number) -> ())?,
-})
+function Slider.Create(parent, id, config)
 	local min       = config.Min     or 0
 	local max       = config.Max     or 100
 	local rounding  = config.Rounding or 0
@@ -1004,9 +975,9 @@ function Slider.Create(parent: Instance, id: string, config: {
 		OnChanged = onChanged,
 	}
 
-	local valueLabel = valueBadge:FindFirstChild("ValueLabel") :: TextLabel
+	local valueLabel = valueBadge:FindFirstChild("ValueLabel")
 
-	local function setValue(val: number)
+	local function setValue(val)
 		val = math.clamp(val, min, max)
 		if rounding > 0 then
 			val = math.floor(val * (10 ^ rounding) + 0.5) / (10 ^ rounding)
@@ -1072,12 +1043,7 @@ local Signal       = __R("Signal")
 
 local Dropdown = {}
 
-function Dropdown.Create(parent: Instance, id: string, config: {
-	Title:    string,
-	Values:   { string },
-	Default:  string?,
-	Callback: ((string) -> ())?,
-})
+function Dropdown.Create(parent, id, config)
 	local values    = config.Values or {}
 	local selected  = config.Default or (values[1] or "")
 	local opened    = false
@@ -1161,19 +1127,19 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 
 	-- Overlay list: parented to ScreenGui to avoid clipping by ScrollingFrame
 	local optionListHeight = #values * 22 + 8
-	local overlayList: Frame? = nil
+	local overlayList= nil
 
 	local dropdownObj = {
 		Value     = selected,
 		OnChanged = onChanged,
 	}
 
-	local selectedLabel = valueBadge:FindFirstChild("SelectedText") :: TextLabel
+	local selectedLabel = valueBadge:FindFirstChild("SelectedText")
 
 	local function closeList()
 		opened = false
 		if overlayList then
-			local ol = overlayList :: Frame
+			local ol = overlayList
 			Tween.Play(ol, Tween.Fast, { Size = UDim2.fromOffset(ol.Size.X.Offset, 0) })
 			task.delay(0.16, function()
 				if not opened then
@@ -1181,13 +1147,13 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 				end
 			end)
 		end
-		local chevron = valueBadge:FindFirstChild("Chevron") :: TextLabel?
+		local chevron = valueBadge:FindFirstChild("Chevron")
 		if chevron then
 			Tween.Play(chevron, Tween.Fast, { Rotation = 0 })
 		end
 	end
 
-	local function selectValue(val: string)
+	local function selectValue(val)
 		selected = val
 		dropdownObj.Value = val
 		selectedLabel.Text = val
@@ -1308,7 +1274,7 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 			closeList()
 		else
 			opened = true
-			local chevron = valueBadge:FindFirstChild("Chevron") :: TextLabel?
+			local chevron = valueBadge:FindFirstChild("Chevron")
 			if chevron then Tween.Play(chevron, Tween.Fast, { Rotation = 180 }) end
 			buildOverlay()
 		end
@@ -1328,12 +1294,7 @@ local Signal       = __R("Signal")
 
 local Input = {}
 
-function Input.Create(parent: Instance, id: string, config: {
-	Title:       string,
-	Default:     string?,
-	Placeholder: string?,
-	Callback:    ((string) -> ())?,
-})
+function Input.Create(parent, id, config)
 	local value     = config.Default or ""
 	local onChanged = Signal.new()
 	local theme     = ThemeManager.CurrentTheme
@@ -1410,7 +1371,7 @@ function Input.Create(parent: Instance, id: string, config: {
 		Tween.SpringAnimate(stroke, { Color = theme.Accent }, Tween.SpringSettle)
 	end)
 
-	textBox.FocusLost:Connect(function(_enterPressed: boolean)
+	textBox.FocusLost:Connect(function(_enterPressed)
 		Tween.SpringAnimate(stroke, { Color = theme.Border }, Tween.SpringSettle)
 		value = textBox.Text
 		inputObj.Value = value
@@ -1420,7 +1381,7 @@ function Input.Create(parent: Instance, id: string, config: {
 		end
 	end)
 
-	function inputObj:SetValue(newVal: string)
+	function inputObj:SetValue(newVal)
 		value = newVal
 		inputObj.Value = newVal
 		textBox.Text = newVal
@@ -1443,7 +1404,7 @@ local Signal = __R("Signal")
 
 local Keybind = {}
 
-function Keybind.Create(parent: Instance, id: string, config: { Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())? })
+function Keybind.Create(parent, id, config)
     local currentKey = config.Default or Enum.KeyCode.RightControl
     local listening = false
     local onChanged = Signal.new()
@@ -1537,18 +1498,18 @@ local HUE_STOPS = {
     ColorSequenceKeypoint.new(1,    Color3.fromRGB(255,   0,   0)),
 }
 
-local function clamp01(v: number): number
+local function clamp01(v)
     return math.clamp(v, 0, 1)
 end
 
-local function relativePos(inputPos: Vector3, frame: Frame): Vector2
+local function relativePos(inputPos, frame)
     return Vector2.new(
         clamp01((inputPos.X - frame.AbsolutePosition.X) / frame.AbsoluteSize.X),
         clamp01((inputPos.Y - frame.AbsolutePosition.Y) / frame.AbsoluteSize.Y)
     )
 end
 
-local function hexFromColor(c: Color3): string
+local function hexFromColor(c)
     return string.format("#%02X%02X%02X",
         math.floor(c.R * 255 + 0.5),
         math.floor(c.G * 255 + 0.5),
@@ -1556,7 +1517,7 @@ local function hexFromColor(c: Color3): string
     )
 end
 
-local function colorFromHex(hex: string): Color3?
+local function colorFromHex(hex)
     hex = hex:gsub("^#", "")
     if #hex == 3 then
         hex = hex:gsub("(.)", "%1%1")
@@ -1571,7 +1532,7 @@ end
 
 local Colorpicker = {}
 
-function Colorpicker.Create(parent: Instance, id: string, config: { Title: string, Default: Color3?, Callback: ((Color3) -> ())? })
+function Colorpicker.Create(parent, id, config)
     local initColor = config.Default or Color3.fromRGB(0, 168, 255)
     local h, s, v   = Color3.toHSV(initColor)
     local alpha      = 1
@@ -1636,7 +1597,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
-    }) :: TextButton
+    })
 
     -- =========================================================================
     -- PICKER PANEL (hidden until swatch clicked, 168px tall)
@@ -1719,7 +1680,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
             BackgroundTransparency = 1,
             Text = "",
         }),
-    }) :: Frame
+    })
 
     local svCursor = Creator.New("Frame", {
         Name = "SVCursor",
@@ -1747,7 +1708,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         Creator.New("UICorner", { CornerRadius = UDim.new(1, 0) }),
         Creator.New("UIGradient", { Color = ColorSequence.new(HUE_STOPS) }),
         Creator.New("TextButton", { Name = "HueInput", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "" }),
-    }) :: Frame
+    })
 
     local hueCursor = Creator.New("Frame", {
         Name = "HueCursor",
@@ -1781,7 +1742,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
             }),
         }),
         Creator.New("TextButton", { Name = "AlphaInput", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "" }),
-    }) :: Frame
+    })
 
     local alphaCursor = Creator.New("Frame", {
         Name = "AlphaCursor",
@@ -1825,7 +1786,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
         Creator.New("UIPadding", { PaddingLeft = UDim.new(0, 6) }),
-    }) :: TextBox
+    })
 
     local previewSwatch = Creator.New("Frame", {
         Name = "Preview",
@@ -1838,7 +1799,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
-    }) :: Frame
+    })
 
     -- =========================================================================
     -- STATE UPDATE HELPERS
@@ -1855,7 +1816,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         previewSwatch.BackgroundColor3 = color
         svSquare.BackgroundColor3      = Color3.fromHSV(h, 1, 1)
 
-        local alphaGrad = alphaStrip:FindFirstChildOfClass("UIGradient") :: UIGradient?
+        local alphaGrad = alphaStrip:FindFirstChildOfClass("UIGradient")
         if alphaGrad then
             alphaGrad.Color = ColorSequence.new(Color3.fromHSV(h, s, v), Color3.fromHSV(h, s, v))
         end
@@ -1877,7 +1838,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         alphaCursor.Position = UDim2.new(alpha, 0, 0.5, 0)
     end
 
-    function colorObj:SetValue(newColor: Color3)
+    function colorObj:SetValue(newColor)
         local nh, ns, nv = Color3.toHSV(newColor)
         h, s, v = nh, ns, nv
         updateSVCursor()
@@ -1899,7 +1860,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- SV SQUARE DRAG
     -- =========================================================================
-    local svInput = svSquare:FindFirstChild("SVInput") :: TextButton
+    local svInput = svSquare:FindFirstChild("SVInput")
     svInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             svDragging = true
@@ -1936,7 +1897,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- HUE STRIP DRAG
     -- =========================================================================
-    local hueInput = hueStrip:FindFirstChild("HueInput") :: TextButton
+    local hueInput = hueStrip:FindFirstChild("HueInput")
     hueInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             hueDragging = true
@@ -1949,7 +1910,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- ALPHA STRIP DRAG
     -- =========================================================================
-    local alphaInput = alphaStrip:FindFirstChild("AlphaInput") :: TextButton
+    local alphaInput = alphaStrip:FindFirstChild("AlphaInput")
     alphaInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             aDragging = true
@@ -1983,7 +1944,7 @@ local ThemeManager = __R("Manager")
 
 local Paragraph = {}
 
-function Paragraph.Create(parent: Instance, config: { Title: string, Content: string })
+function Paragraph.Create(parent, config)
     local theme = ThemeManager.CurrentTheme
 
     local container = Creator.New("Frame", {
@@ -2053,7 +2014,7 @@ local ThemeManager = __R("Manager")
 
 local Divider = {}
 
-function Divider.Create(parent: Instance): Frame
+function Divider.Create(parent)
     local theme = ThemeManager.CurrentTheme
     local line = Creator.New("Frame", {
         Name = "Divider",
@@ -2062,7 +2023,7 @@ function Divider.Create(parent: Instance): Frame
         BorderSizePixel = 0,
         ThemeTag = { BackgroundColor3 = "Border" },
         Parent = parent,
-    }) :: Frame
+    })
     return line
 end
 
@@ -2085,7 +2046,7 @@ local Divider      = __R("Divider")
 local Section = {}
 Section.__index = Section
 
-function Section.new(parent: Instance, title: string?)
+function Section.new(parent, title)
     local self = setmetatable({}, Section)
     local theme = ThemeManager.CurrentTheme
 
@@ -2140,60 +2101,60 @@ function Section.new(parent: Instance, title: string?)
     return self
 end
 
-local function nextOrder(self: any): number
+local function nextOrder(self)
     self._order = self._order + 1
     return self._order
 end
 
-function Section:AddToggle(id: string, config: { Title: string, Default: boolean?, Callback: ((boolean) -> ())? })
+function Section:AddToggle(id, config)
     local obj = Toggle.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Toggle_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Toggle_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddSlider(id: string, config: { Title: string, Min: number, Max: number, Default: number?, Rounding: number?, Suffix: string?, Callback: ((number) -> ())? })
+function Section:AddSlider(id, config)
     local obj = Slider.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Slider_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Slider_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddButton(config: { Title: string, Description: string?, Callback: (() -> ())? })
+function Section:AddButton(config)
     local frame = Button.Create(self.Container, config)
     frame.LayoutOrder = nextOrder(self)
     return frame
 end
 
-function Section:AddDropdown(id: string, config: { Title: string, Values: { string }, Default: string?, Callback: ((string) -> ())? })
+function Section:AddDropdown(id, config)
     local obj = Dropdown.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Dropdown_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Dropdown_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddInput(id: string, config: { Title: string, Default: string?, Placeholder: string?, Callback: ((string) -> ())? })
+function Section:AddInput(id, config)
     local obj = Input.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Input_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Input_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddKeybind(id: string, config: { Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())? })
+function Section:AddKeybind(id, config)
     local obj = Keybind.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Keybind_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Keybind_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddColorpicker(id: string, config: { Title: string, Default: Color3?, Callback: ((Color3) -> ())? })
+function Section:AddColorpicker(id, config)
     local obj = Colorpicker.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Colorpicker_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Colorpicker_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddParagraph(config: { Title: string, Content: string })
+function Section:AddParagraph(config)
     local frame = Paragraph.Create(self.Container, config)
     frame.LayoutOrder = nextOrder(self)
     return frame
@@ -2214,16 +2175,13 @@ local TweenService = game:GetService("TweenService")
 local LoadingScreen = {}
 LoadingScreen.__index = LoadingScreen
 
-export type Config = {
-	Title:  string?,
-	Parent: ScreenGui,
-}
+
 
 local FADE    = TweenInfo.new(0.38, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local DOT_ON  = TweenInfo.new(0.14)
 local DOT_OFF = TweenInfo.new(0.28)
 
-function LoadingScreen.new(config: Config): any
+function LoadingScreen.new(config)
 	local self = setmetatable({}, LoadingScreen)
 	self._dismissed = false
 
@@ -2330,7 +2288,7 @@ function LoadingScreen.new(config: Config): any
 					Size = j == i
 						and UDim2.fromOffset(5, 5)
 						or UDim2.fromOffset(4, 4),
-				}):Play()
+				})
 			end
 			i = (i % 3) + 1
 			task.wait(0.38)
@@ -2341,7 +2299,7 @@ function LoadingScreen.new(config: Config): any
 	return self
 end
 
-function LoadingScreen:SetStatus(text: string)
+function LoadingScreen:SetStatus(text)
 	if self._dismissed or not self._statusLbl then return end
 	self._statusLbl.Text = text
 end
@@ -2374,18 +2332,12 @@ local BTN_SZ = 44
 local CORNER = 8
 local GAP    = 12
 
-export type NavEntry = {
-	Id:       string,
-	Icon:     string,
-	Label:    string,
-	SelectFn: () -> (),
-}
 
-type BtnRecord = {
-	id:           string,
-	rail:         Frame,
-	onActivate:   () -> (),
-	onDeactivate: () -> (),
+
+	id,
+	rail,
+	onActivate,
+	onDeactivate,
 }
 
 local FloatingNav = {}
@@ -2406,10 +2358,10 @@ local function glassGradient()
 	})
 end
 
-function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number, height: number): any
+function FloatingNav.new(screenGui, anchorX, anchorY, height)
 	local self    = setmetatable({}, FloatingNav)
-	self._entries = {} :: { NavEntry }
-	self._btns    = {} :: { BtnRecord }
+	self._entries = {}
+	self._btns    = {}
 	self._activeId = ""
 	self._attached = true
 
@@ -2457,12 +2409,12 @@ function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number,
 	self._panel  = panel
 	self._shadow = shadow
 
-	local sprX = Spring.new(panel.Position.X.Offset :: number, 18, 0.80)
-	local sprY = Spring.new(panel.Position.Y.Offset :: number, 18, 0.80)
+	local sprX = Spring.new(panel.Position.X.Offset, 18, 0.80)
+	local sprY = Spring.new(panel.Position.Y.Offset, 18, 0.80)
 	self._sprX = sprX
 	self._sprY = sprY
 
-	local conn = RunService.Heartbeat:Connect(function(dt: number)
+	local conn = RunService.Heartbeat:Connect(function(dt)
 		if not self._attached then return end
 		sprX:Step(dt)
 		sprY:Step(dt)
@@ -2476,7 +2428,7 @@ function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number,
 	return self
 end
 
-function FloatingNav:AddEntry(entry: NavEntry)
+function FloatingNav:AddEntry(entry)
 	table.insert(self._entries, entry)
 	local t     = ThemeManager.CurrentTheme
 	local order = #self._entries
@@ -2538,9 +2490,9 @@ function FloatingNav:AddEntry(entry: NavEntry)
 		Parent                 = railBtn,
 	})
 
-	local icon  = railBtn:FindFirstChild("Icon")      :: TextLabel
-	local label = railBtn:FindFirstChild("Label")     :: TextLabel
-	local bar   = railBtn:FindFirstChild("ActiveBar") :: Frame
+	local icon  = railBtn:FindFirstChild("Icon")
+	local label = railBtn:FindFirstChild("Label")
+	local bar   = railBtn:FindFirstChild("ActiveBar")
 
 	local function onActivate()
 		Tween.Play(railBtn, Tween.Fast, { BackgroundTransparency = 0 })
@@ -2570,7 +2522,7 @@ function FloatingNav:AddEntry(entry: NavEntry)
 		entry.SelectFn()
 	end)
 
-	local record: BtnRecord = {
+	local record= {
 		id           = entry.Id,
 		rail         = railBtn,
 		onActivate   = onActivate,
@@ -2579,7 +2531,7 @@ function FloatingNav:AddEntry(entry: NavEntry)
 	table.insert(self._btns, record)
 end
 
-function FloatingNav:SelectById(id: string)
+function FloatingNav:SelectById(id)
 	self._activeId = id
 	for _, b in ipairs(self._btns) do
 		if b.id == id then
@@ -2590,7 +2542,7 @@ function FloatingNav:SelectById(id: string)
 	end
 end
 
-function FloatingNav:Follow(x: number, y: number, height: number)
+function FloatingNav:Follow(x, y, height)
 	if not self._attached then return end
 	self._sprX:SetTarget(x - GAP - NAV_W)
 	self._sprY:SetTarget(y)
@@ -2598,16 +2550,16 @@ function FloatingNav:Follow(x: number, y: number, height: number)
 	self._shadow.Size = UDim2.fromOffset(NAV_W + 10, height + 10)
 end
 
-function FloatingNav:SetVisible(visible: boolean)
+function FloatingNav:SetVisible(visible)
 	self._panel.Visible  = visible
 	self._shadow.Visible = visible
 end
 
-function FloatingNav:GetWidth(): number
+function FloatingNav:GetWidth()
 	return NAV_W
 end
 
-function FloatingNav:GetGap(): number
+function FloatingNav:GetGap()
 	return GAP
 end
 
@@ -2632,20 +2584,15 @@ local BAR_H  = 34
 local GAP    = 10
 local CORNER = 8
 
-export type SearchEntry = {
-	Id:       string,
-	Label:    string,
-	TabId:    string,
-	SelectFn: () -> (),
-}
+
 
 local SearchBar = {}
 SearchBar.__index = SearchBar
 
-function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, width: number): any
+function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local self       = setmetatable({}, SearchBar)
-	self._entries    = {} :: { SearchEntry }
-	self._resultFrames = {} :: { Frame }
+	self._entries    = {}
+	self._resultFrames = {}
 	self._query      = ""
 
 	local t = ThemeManager.CurrentTheme
@@ -2762,12 +2709,12 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 	self._input        = input
 	self._resultsFrame = resultsFrame
 
-	local sprX = Spring.new(bar.Position.X.Offset :: number, 18, 0.80)
-	local sprY = Spring.new(bar.Position.Y.Offset :: number, 18, 0.80)
+	local sprX = Spring.new(bar.Position.X.Offset, 18, 0.80)
+	local sprY = Spring.new(bar.Position.Y.Offset, 18, 0.80)
 	self._sprX = sprX
 	self._sprY = sprY
 
-	local heartbeat = RunService.Heartbeat:Connect(function(dt: number)
+	local heartbeat = RunService.Heartbeat:Connect(function(dt)
 		sprX:Step(dt)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
@@ -2777,11 +2724,11 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 	end)
 	self._heartbeat = heartbeat
 
-	input:GetPropertyChangedSignal("Text"):Connect(function()
+	input:GetPropertyChangedSignal("Text")
 		self:_Refresh(input.Text)
 	end)
 
-	input.FocusLost:Connect(function(enterPressed: boolean)
+	input.FocusLost:Connect(function(enterPressed)
 		if enterPressed then
 			self:_SelectFirst()
 		end
@@ -2798,7 +2745,7 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 		end
 	end)
 
-	UserInputService.InputBegan:Connect(function(inp: InputObject, processed: boolean)
+	UserInputService.InputBegan:Connect(function(inp, processed)
 		if processed then return end
 		if inp.KeyCode == Enum.KeyCode.Slash then
 			input:CaptureFocus()
@@ -2815,7 +2762,7 @@ function SearchBar:_ClearResults()
 	self._resultFrames = {}
 end
 
-function SearchBar:_Refresh(query: string)
+function SearchBar:_Refresh(query)
 	self._query = query
 	self:_ClearResults()
 
@@ -2889,22 +2836,22 @@ end
 
 function SearchBar:_SelectFirst()
 	if #self._resultFrames > 0 then
-		(self._resultFrames[1] :: TextButton).MouseButton1Click:Fire()
+		(self._resultFrames[1]).MouseButton1Click:Fire()
 	end
 end
 
-function SearchBar:RegisterElement(entry: SearchEntry)
+function SearchBar:RegisterElement(entry)
 	table.insert(self._entries, entry)
 end
 
-function SearchBar:Follow(x: number, y: number, width: number)
+function SearchBar:Follow(x, y, width)
 	self._sprX:SetTarget(x)
 	self._sprY:SetTarget(y + GAP)
 	self._bar.Size    = UDim2.fromOffset(width, BAR_H)
 	self._shadow.Size = UDim2.fromOffset(width + 8, BAR_H + 8)
 end
 
-function SearchBar:SetVisible(visible: boolean)
+function SearchBar:SetVisible(visible)
 	self._bar.Visible    = visible
 	self._shadow.Visible = visible
 	if not visible then
@@ -2935,18 +2882,14 @@ local BTN_SZ   = 36
 local CORNER   = 10
 local GAP_TOP  = 8
 
-export type SidebarEntry = {
-	Id:     string,
-	Icon:   string,
-	OnClick: () -> (),
-}
+
 
 local EdgeSidebar = {}
 EdgeSidebar.__index = EdgeSidebar
 
-function EdgeSidebar.new(screenGui: ScreenGui, anchorY: number, height: number): any
+function EdgeSidebar.new(screenGui, anchorY, height)
 	local self    = setmetatable({}, EdgeSidebar)
-	self._entries = {} :: { SidebarEntry }
+	self._entries = {}
 	self._shown   = false
 
 	local t = ThemeManager.CurrentTheme
@@ -3010,14 +2953,14 @@ function EdgeSidebar.new(screenGui: ScreenGui, anchorY: number, height: number):
 	self._height  = height
 	self._anchorY = anchorY
 
-	local hiddenX  = -CLIP_W :: number
-	local shownX   = 0       :: number
+	local hiddenX  = -CLIP_W
+	local shownX   = 0
 	local sprX     = Spring.new(hiddenX, 22, 0.82)
 	self._sprX     = sprX
 	self._hiddenX  = hiddenX
 	self._shownX   = shownX
 
-	local conn = RunService.Heartbeat:Connect(function(dt: number)
+	local conn = RunService.Heartbeat:Connect(function(dt)
 		sprX:Step(dt)
 		local x = math.round(sprX.Position)
 		clipper.Position = UDim2.fromOffset(x, self._anchorY)
@@ -3059,11 +3002,11 @@ function EdgeSidebar:_AddRestoreButton()
 	self._restoreSignal = btn.MouseButton1Click
 end
 
-function EdgeSidebar:OnRestore(fn: () -> ())
+function EdgeSidebar:OnRestore(fn)
 	self._restoreConn = self._restoreSignal:Connect(fn)
 end
 
-function EdgeSidebar:AddEntry(entry: SidebarEntry)
+function EdgeSidebar:AddEntry(entry)
 	table.insert(self._entries, entry)
 	local t     = ThemeManager.CurrentTheme
 	local order = #self._entries + 1
@@ -3107,7 +3050,7 @@ function EdgeSidebar:Hide()
 	self._sprX:SetTarget(self._hiddenX)
 end
 
-function EdgeSidebar:Reposition(anchorY: number, height: number)
+function EdgeSidebar:Reposition(anchorY, height)
 	self._anchorY = anchorY
 	self._height  = height
 	self._clipper.Size = UDim2.fromOffset(CLIP_W, height)
@@ -3135,7 +3078,7 @@ local THUMB_SZ   = Enum.ThumbnailSize.Size100x100
 local Dashboard = {}
 Dashboard.__index = Dashboard
 
-function Dashboard.new(parent: Frame): any
+function Dashboard.new(parent)
 	local self = setmetatable({}, Dashboard)
 
 	local t = ThemeManager.CurrentTheme
@@ -3294,15 +3237,15 @@ function Dashboard.new(parent: Frame): any
 	return self
 end
 
-function Dashboard:GetPage(): Frame
+function Dashboard:GetPage()
 	return self._page
 end
 
-function Dashboard:GetContentArea(): ScrollingFrame
+function Dashboard:GetContentArea()
 	return self._contentArea
 end
 
-function Dashboard:SetVisible(visible: boolean)
+function Dashboard:SetVisible(visible)
 	self._page.Visible = visible
 end
 
@@ -3321,7 +3264,7 @@ local Tween   = __R("Tween")
 local Tab = {}
 Tab.__index = Tab
 
-function Tab.new(window: any, config: { Title: string, Icon: string? }): any
+function Tab.new(window, config)
 	local self   = setmetatable({}, Tab)
 	self.Window  = window
 	self.Title   = config.Title
@@ -3405,7 +3348,7 @@ function Tab.new(window: any, config: { Title: string, Icon: string? }): any
 	return self
 end
 
-function Tab:AddSection(title: string?, column: number?): any
+function Tab:AddSection(title, column)
 	self._sectionCount += 1
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
@@ -3413,15 +3356,15 @@ function Tab:AddSection(title: string?, column: number?): any
 	return sec
 end
 
-function Tab:AddLeftSection(title: string?): any
+function Tab:AddLeftSection(title)
 	return self:AddSection(title, 1)
 end
 
-function Tab:AddRightSection(title: string?): any
+function Tab:AddRightSection(title)
 	return self:AddSection(title, 2)
 end
 
-function Tab:SetVisible(visible: boolean)
+function Tab:SetVisible(visible)
 	self._page.Visible = visible
 	self.Active = visible
 end
@@ -3459,25 +3402,21 @@ local MAIN_H   = 460
 local TOPBAR_H = 38
 local CORNER   = 10
 
-export type WindowConfig = {
-	Title:   string?,
-	Loading: { Enabled: boolean?, Title: string? }?,
-	Search:  { Enabled: boolean? }?,
-}
+
 
 local Window = {}
 Window.__index = Window
 
-local function centerPos(): UDim2
+local function centerPos()
 	return UDim2.fromOffset(
 		math.round((workspace.CurrentCamera.ViewportSize.X - MAIN_W) / 2),
 		math.round((workspace.CurrentCamera.ViewportSize.Y - MAIN_H) / 2)
 	)
 end
 
-function Window.new(config: WindowConfig): any
+function Window.new(config)
 	local self          = setmetatable({}, Window)
-	self._tabs          = {} :: { any }
+	self._tabs          = {}
 	self._visible       = true
 	self._minimized     = false
 	self._tabCount      = 0
@@ -3572,7 +3511,7 @@ function Window.new(config: WindowConfig): any
 		Parent                 = topBar,
 	})
 
-	local function makeCtrl(label: string, anchorOffsetX: number): TextButton
+	local function makeCtrl(label, anchorOffsetX)
 		local btn = Creator.New("TextButton", {
 			Name                   = label,
 			AnchorPoint            = Vector2.new(1, 0.5),
@@ -3626,7 +3565,7 @@ function Window.new(config: WindowConfig): any
 	self._nav = nav
 
 	local searchEnabled = config.Search and config.Search.Enabled
-	local searchBar: any = nil
+	local searchBar= nil
 	if searchEnabled then
 		searchBar = SearchBar.new(gui, startX, startY + MAIN_H, MAIN_W)
 		self._searchBar = searchBar
@@ -3638,7 +3577,7 @@ function Window.new(config: WindowConfig): any
 		self:ToggleMinimize()
 	end)
 
-	local loadingScreen: any = nil
+	local loadingScreen= nil
 	if config.Loading and config.Loading.Enabled then
 		loadingScreen = LoadingScreen.new({
 			Title  = config.Loading.Title,
@@ -3659,7 +3598,7 @@ function Window.new(config: WindowConfig): any
 		sidebar:Reposition(y, MAIN_H)
 	end
 
-	local dragHandle = Drag.Attach(topBar, main, function(x: number, y: number)
+	local dragHandle = Drag.Attach(topBar, main, function(x, y)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
@@ -3699,7 +3638,7 @@ function Window:_AddDashboard()
 	self._tabCount = self._tabCount + 1
 end
 
-function Window:_SelectPage(id: string)
+function Window:_SelectPage(id)
 	if self._dashboard then
 		self._dashboard:SetVisible(id == "__dashboard")
 	end
@@ -3710,7 +3649,7 @@ function Window:_SelectPage(id: string)
 	self._activeId = id
 end
 
-function Window:AddTab(config: { Title: string, Icon: string? }): any
+function Window:AddTab(config)
 	local id  = config.Title
 	local tab = Tab.new(self, config)
 	tab._id   = id
@@ -3729,7 +3668,7 @@ function Window:AddTab(config: { Title: string, Icon: string? }): any
 	return tab
 end
 
-function Window:AddQuickAction(entry: { Id: string, Icon: string, OnClick: () -> () })
+function Window:AddQuickAction(entry)
 	self._sidebar:AddEntry(entry)
 end
 
@@ -3740,7 +3679,7 @@ function Window:DismissLoading()
 	end
 end
 
-function Window:SetLoadingStatus(text: string)
+function Window:SetLoadingStatus(text)
 	if self._loading then
 		self._loading:SetStatus(text)
 	end
@@ -3783,11 +3722,11 @@ function Window:ToggleMinimize()
 	end
 end
 
-function Window:SelectTab(id: string)
+function Window:SelectTab(id)
 	self:_SelectPage(id)
 end
 
-function Window:GetSearchBar(): any
+function Window:GetSearchBar()
 	return self._searchBar
 end
 
@@ -3809,26 +3748,24 @@ local Window         = __R("Window")
 local Notification   = __R("Notification")
 
 local Library = {
-	Flags   = {} :: { [string]: any },
-	Options = {} :: { [string]: any },
+	Flags   = {},
+	Options = {},
 	Themes  = ThemeManager.Themes,
 }
 
-local function bindFlag(lib: typeof(Library), id: string, obj: any)
+local function bindFlag(lib, id, obj)
 	if obj and obj.OnChanged then
 		lib.Flags[id] = obj.Value
-		obj.OnChanged:Connect(function(v: any)
+		obj.OnChanged:Connect(function(v)
 			lib.Flags[id] = v
 		end)
 	end
 end
 
-local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
+local function makeSecApi(lib, sec, searchBar)
 	local secApi = {}
 
-	function secApi:AddToggle(id: string, cfg: {
-		Title: string, Default: boolean?, Callback: ((boolean) -> ())?
-	}): any
+	function secApi:AddToggle(id, cfg)
 		local obj = sec:AddToggle(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -3838,10 +3775,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddSlider(id: string, cfg: {
-		Title: string, Min: number, Max: number, Default: number?,
-		Rounding: number?, Suffix: string?, Callback: ((number) -> ())?
-	}): any
+	function secApi:AddSlider(id, cfg)
 		local obj = sec:AddSlider(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -3851,7 +3785,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddButton(cfg: { Title: string, Description: string?, Callback: (() -> ())? }): any
+	function secApi:AddButton(cfg)
 		local obj = sec:AddButton(cfg)
 		if searchBar then
 			searchBar:RegisterElement({ Id = cfg.Title, Label = cfg.Title, TabId = "", SelectFn = cfg.Callback or function() end })
@@ -3859,9 +3793,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddDropdown(id: string, cfg: {
-		Title: string, Values: { string }, Default: string?, Callback: ((string) -> ())?
-	}): any
+	function secApi:AddDropdown(id, cfg)
 		local obj = sec:AddDropdown(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -3871,57 +3803,51 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddInput(id: string, cfg: {
-		Title: string, Default: string?, Placeholder: string?, Callback: ((string) -> ())?
-	}): any
+	function secApi:AddInput(id, cfg)
 		local obj = sec:AddInput(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddKeybind(id: string, cfg: {
-		Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())?
-	}): any
+	function secApi:AddKeybind(id, cfg)
 		local obj = sec:AddKeybind(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddColorpicker(id: string, cfg: {
-		Title: string, Default: Color3?, Callback: ((Color3) -> ())?
-	}): any
+	function secApi:AddColorpicker(id, cfg)
 		local obj = sec:AddColorpicker(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddParagraph(cfg: { Title: string, Content: string }): any
+	function secApi:AddParagraph(cfg)
 		return sec:AddParagraph(cfg)
 	end
 
-	function secApi:AddDivider(): any
+	function secApi:AddDivider()
 		return sec:AddDivider()
 	end
 
 	return secApi
 end
 
-local function makeTabApi(lib: typeof(Library), tab: any, searchBar: any): any
+local function makeTabApi(lib, tab, searchBar)
 	local tabApi = {}
 
-	function tabApi:AddSection(title: string?, column: number?): any
+	function tabApi:AddSection(title, column)
 		local sec = tab:AddSection(title, column)
 		return makeSecApi(lib, sec, searchBar)
 	end
 
-	function tabApi:AddLeftSection(title: string?): any
+	function tabApi:AddLeftSection(title)
 		return tabApi:AddSection(title, 1)
 	end
 
-	function tabApi:AddRightSection(title: string?): any
+	function tabApi:AddRightSection(title)
 		return tabApi:AddSection(title, 2)
 	end
 
@@ -3929,11 +3855,11 @@ local function makeTabApi(lib: typeof(Library), tab: any, searchBar: any): any
 end
 
 function Library:CreateWindow(config: {
-	Title:   string?,
-	Loading: { Enabled: boolean?, Title: string? }?,
-	Search:  { Enabled: boolean? }?,
-	Theme:   string?,
-}): any
+	Title,
+	Loading,
+	Search,
+	Theme,
+})
 	if config.Theme then
 		ThemeManager.SetTheme(config.Theme)
 	end
@@ -3944,16 +3870,16 @@ function Library:CreateWindow(config: {
 
 	local winApi = {}
 
-	function winApi:AddTab(tabConfig: { Title: string, Icon: string? }): any
+	function winApi:AddTab(tabConfig)
 		local tab = win:AddTab(tabConfig)
 		return makeTabApi(Library, tab, searchBar)
 	end
 
-	function winApi:AddQuickAction(entry: { Id: string, Icon: string, OnClick: () -> () })
+	function winApi:AddQuickAction(entry)
 		win:AddQuickAction(entry)
 	end
 
-	function winApi:SelectTab(id: string)
+	function winApi:SelectTab(id)
 		win:SelectTab(id)
 	end
 
@@ -3961,11 +3887,11 @@ function Library:CreateWindow(config: {
 		win:DismissLoading()
 	end
 
-	function winApi:SetLoadingStatus(text: string)
+	function winApi:SetLoadingStatus(text)
 		win:SetLoadingStatus(text)
 	end
 
-	function winApi:SetVisible(visible: boolean)
+	function winApi:SetVisible(visible)
 		if visible then win:Show() else win:Hide() end
 	end
 
@@ -3988,25 +3914,25 @@ function Library:CreateWindow(config: {
 	return winApi
 end
 
-function Library:SetTheme(name: string)
+function Library:SetTheme(name)
 	ThemeManager.SetTheme(name)
 	self.Themes = ThemeManager.Themes
 end
 
-function Library:GetTheme(): { [string]: any }
+function Library:GetTheme()
 	return ThemeManager.CurrentTheme
 end
 
-function Library:GetThemeName(): string
+function Library:GetThemeName()
 	return ThemeManager.CurrentThemeName
 end
 
-function Library:RegisterTheme(name: string, themeTable: { [string]: any })
+function Library:RegisterTheme(name, themeTable)
 	ThemeManager.RegisterTheme(name, themeTable)
 	self.Themes = ThemeManager.Themes
 end
 
-function Library:Notify(config: { Title: string, Content: string, Duration: number? })
+function Library:Notify(config)
 	Notification.Notify(config)
 end
 
