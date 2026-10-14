@@ -1,4 +1,3 @@
---!strict
 return {
     Name = "Ocean",
     Canvas = Color3.fromRGB(8, 13, 17),

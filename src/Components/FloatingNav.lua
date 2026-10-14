@@ -1,4 +1,3 @@
---!strict
 local RunService   = game:GetService("RunService")
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
@@ -10,19 +9,7 @@ local BTN_SZ = 44
 local CORNER = 8
 local GAP    = 12
 
-export type NavEntry = {
-	Id:       string,
-	Icon:     string,
-	Label:    string,
-	SelectFn: () -> (),
-}
 
-type BtnRecord = {
-	id:           string,
-	rail:         Frame,
-	onActivate:   () -> (),
-	onDeactivate: () -> (),
-}
 
 local FloatingNav = {}
 FloatingNav.__index = FloatingNav
@@ -42,10 +29,10 @@ local function glassGradient()
 	})
 end
 
-function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number, height: number): any
+function FloatingNav.new(screenGui, anchorX, anchorY, height)
 	local self    = setmetatable({}, FloatingNav)
-	self._entries = {} :: { NavEntry }
-	self._btns    = {} :: { BtnRecord }
+	self._entries = {}
+	self._btns    = {}
 	self._activeId = ""
 	self._attached = true
 
@@ -93,12 +80,12 @@ function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number,
 	self._panel  = panel
 	self._shadow = shadow
 
-	local sprX = Spring.new(panel.Position.X.Offset :: number, 18, 0.80)
-	local sprY = Spring.new(panel.Position.Y.Offset :: number, 18, 0.80)
+	local sprX = Spring.new(panel.Position.X.Offset, 18, 0.80)
+	local sprY = Spring.new(panel.Position.Y.Offset, 18, 0.80)
 	self._sprX = sprX
 	self._sprY = sprY
 
-	local conn = RunService.Heartbeat:Connect(function(dt: number)
+	local conn = RunService.Heartbeat:Connect(function(dt)
 		if not self._attached then return end
 		sprX:Step(dt)
 		sprY:Step(dt)
@@ -112,7 +99,7 @@ function FloatingNav.new(screenGui: ScreenGui, anchorX: number, anchorY: number,
 	return self
 end
 
-function FloatingNav:AddEntry(entry: NavEntry)
+function FloatingNav:AddEntry(entry)
 	table.insert(self._entries, entry)
 	local t     = ThemeManager.CurrentTheme
 	local order = #self._entries
@@ -174,9 +161,9 @@ function FloatingNav:AddEntry(entry: NavEntry)
 		Parent                 = railBtn,
 	})
 
-	local icon  = railBtn:FindFirstChild("Icon")      :: TextLabel
-	local label = railBtn:FindFirstChild("Label")     :: TextLabel
-	local bar   = railBtn:FindFirstChild("ActiveBar") :: Frame
+	local icon  = railBtn:FindFirstChild("Icon")
+	local label = railBtn:FindFirstChild("Label")
+	local bar   = railBtn:FindFirstChild("ActiveBar")
 
 	local function onActivate()
 		Tween.Play(railBtn, Tween.Fast, { BackgroundTransparency = 0 })
@@ -206,7 +193,7 @@ function FloatingNav:AddEntry(entry: NavEntry)
 		entry.SelectFn()
 	end)
 
-	local record: BtnRecord = {
+	local record= {
 		id           = entry.Id,
 		rail         = railBtn,
 		onActivate   = onActivate,
@@ -215,7 +202,7 @@ function FloatingNav:AddEntry(entry: NavEntry)
 	table.insert(self._btns, record)
 end
 
-function FloatingNav:SelectById(id: string)
+function FloatingNav:SelectById(id)
 	self._activeId = id
 	for _, b in ipairs(self._btns) do
 		if b.id == id then
@@ -226,7 +213,7 @@ function FloatingNav:SelectById(id: string)
 	end
 end
 
-function FloatingNav:Follow(x: number, y: number, height: number)
+function FloatingNav:Follow(x, y, height)
 	if not self._attached then return end
 	self._sprX:SetTarget(x - GAP - NAV_W)
 	self._sprY:SetTarget(y)
@@ -234,16 +221,16 @@ function FloatingNav:Follow(x: number, y: number, height: number)
 	self._shadow.Size = UDim2.fromOffset(NAV_W + 10, height + 10)
 end
 
-function FloatingNav:SetVisible(visible: boolean)
+function FloatingNav:SetVisible(visible)
 	self._panel.Visible  = visible
 	self._shadow.Visible = visible
 end
 
-function FloatingNav:GetWidth(): number
+function FloatingNav:GetWidth()
 	return NAV_W
 end
 
-function FloatingNav:GetGap(): number
+function FloatingNav:GetGap()
 	return GAP
 end
 

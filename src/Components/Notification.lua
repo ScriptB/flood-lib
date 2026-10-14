@@ -1,14 +1,13 @@
---!strict
 -- Toast Notification queue and rendering container
 
 local Creator = require(script.Parent.Parent.Creator)
 local Tween = require(script.Parent.Parent.Utils.Tween)
 
 local Notification = {
-    Container = nil :: Frame?,
+    Container = nil,
 }
 
-function Notification.Init(screenGui: ScreenGui)
+function Notification.Init(screenGui)
     if Notification.Container then return end
 
     Notification.Container = Creator.New("Frame", {
@@ -28,7 +27,7 @@ function Notification.Init(screenGui: ScreenGui)
     })
 end
 
-function Notification.Notify(config: { Title: string, Content: string, Duration: number? })
+function Notification.Notify(config)
     if not Notification.Container then return end
 
     local card = Creator.New("Frame", {

@@ -1,4 +1,3 @@
---!strict
 -- Production Keybind Component (Frontend UI Engineering Spec)
 -- 28px height, 4px corner radius, hotkey pill badge
 
@@ -9,7 +8,7 @@ local Signal = require(script.Parent.Parent.Utils.Signal)
 
 local Keybind = {}
 
-function Keybind.Create(parent: Instance, id: string, config: { Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())? })
+function Keybind.Create(parent, id, config)
     local currentKey = config.Default or Enum.KeyCode.RightControl
     local listening = false
     local onChanged = Signal.new()

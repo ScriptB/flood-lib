@@ -1,4 +1,3 @@
---!strict
 local Players          = game:GetService("Players")
 local Creator          = require(script.Parent.Parent.Creator)
 local ThemeManager     = require(script.Parent.Parent.Themes.Manager)
@@ -10,7 +9,7 @@ local THUMB_SZ   = Enum.ThumbnailSize.Size100x100
 local Dashboard = {}
 Dashboard.__index = Dashboard
 
-function Dashboard.new(parent: Frame): any
+function Dashboard.new(parent)
 	local self = setmetatable({}, Dashboard)
 
 	local t = ThemeManager.CurrentTheme
@@ -169,15 +168,15 @@ function Dashboard.new(parent: Frame): any
 	return self
 end
 
-function Dashboard:GetPage(): Frame
+function Dashboard:GetPage()
 	return self._page
 end
 
-function Dashboard:GetContentArea(): ScrollingFrame
+function Dashboard:GetContentArea()
 	return self._contentArea
 end
 
-function Dashboard:SetVisible(visible: boolean)
+function Dashboard:SetVisible(visible)
 	self._page.Visible = visible
 end
 

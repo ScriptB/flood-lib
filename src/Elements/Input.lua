@@ -1,4 +1,3 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
@@ -6,12 +5,7 @@ local Signal       = require(script.Parent.Parent.Utils.Signal)
 
 local Input = {}
 
-function Input.Create(parent: Instance, id: string, config: {
-	Title:       string,
-	Default:     string?,
-	Placeholder: string?,
-	Callback:    ((string) -> ())?,
-})
+function Input.Create(parent, id, config)
 	local value     = config.Default or ""
 	local onChanged = Signal.new()
 	local theme     = ThemeManager.CurrentTheme
@@ -88,7 +82,7 @@ function Input.Create(parent: Instance, id: string, config: {
 		Tween.SpringAnimate(stroke, { Color = theme.Accent }, Tween.SpringSettle)
 	end)
 
-	textBox.FocusLost:Connect(function(_enterPressed: boolean)
+	textBox.FocusLost:Connect(function(_enterPressed)
 		Tween.SpringAnimate(stroke, { Color = theme.Border }, Tween.SpringSettle)
 		value = textBox.Text
 		inputObj.Value = value
@@ -98,7 +92,7 @@ function Input.Create(parent: Instance, id: string, config: {
 		end
 	end)
 
-	function inputObj:SetValue(newVal: string)
+	function inputObj:SetValue(newVal)
 		value = newVal
 		inputObj.Value = newVal
 		textBox.Text = newVal

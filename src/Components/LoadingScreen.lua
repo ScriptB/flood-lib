@@ -1,19 +1,14 @@
---!strict
 local TweenService = game:GetService("TweenService")
 
 local LoadingScreen = {}
 LoadingScreen.__index = LoadingScreen
 
-export type Config = {
-	Title:  string?,
-	Parent: ScreenGui,
-}
 
 local FADE    = TweenInfo.new(0.38, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local DOT_ON  = TweenInfo.new(0.14)
 local DOT_OFF = TweenInfo.new(0.28)
 
-function LoadingScreen.new(config: Config): any
+function LoadingScreen.new(config)
 	local self = setmetatable({}, LoadingScreen)
 	self._dismissed = false
 
@@ -91,7 +86,7 @@ function LoadingScreen.new(config: Config): any
 	dotLayout.Padding          = UDim.new(0, 6)
 	dotLayout.Parent           = dotRow
 
-	local dots: { Frame } = {}
+	local dots= {}
 	for _ = 1, 3 do
 		local dot           = Instance.new("Frame")
 		dot.Size            = UDim2.fromOffset(4, 4)
@@ -131,7 +126,7 @@ function LoadingScreen.new(config: Config): any
 	return self
 end
 
-function LoadingScreen:SetStatus(text: string)
+function LoadingScreen:SetStatus(text)
 	if self._dismissed or not self._statusLbl then return end
 	self._statusLbl.Text = text
 end

@@ -1,10 +1,9 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 
 local Divider = {}
 
-function Divider.Create(parent: Instance): Frame
+function Divider.Create(parent)
     local theme = ThemeManager.CurrentTheme
     local line = Creator.New("Frame", {
         Name = "Divider",
@@ -13,7 +12,7 @@ function Divider.Create(parent: Instance): Frame
         BorderSizePixel = 0,
         ThemeTag = { BackgroundColor3 = "Border" },
         Parent = parent,
-    }) :: Frame
+    })
     return line
 end
 

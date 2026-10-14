@@ -1,4 +1,3 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
@@ -16,25 +15,20 @@ local MAIN_H   = 460
 local TOPBAR_H = 38
 local CORNER   = 10
 
-export type WindowConfig = {
-	Title:   string?,
-	Loading: { Enabled: boolean?, Title: string? }?,
-	Search:  { Enabled: boolean? }?,
-}
 
 local Window = {}
 Window.__index = Window
 
-local function centerPos(): UDim2
+local function centerPos()
 	return UDim2.fromOffset(
 		math.round((workspace.CurrentCamera.ViewportSize.X - MAIN_W) / 2),
 		math.round((workspace.CurrentCamera.ViewportSize.Y - MAIN_H) / 2)
 	)
 end
 
-function Window.new(config: WindowConfig): any
+function Window.new(config)
 	local self          = setmetatable({}, Window)
-	self._tabs          = {} :: { any }
+	self._tabs          = {}
 	self._visible       = true
 	self._minimized     = false
 	self._tabCount      = 0
@@ -129,7 +123,7 @@ function Window.new(config: WindowConfig): any
 		Parent                 = topBar,
 	})
 
-	local function makeCtrl(label: string, anchorOffsetX: number): TextButton
+	local function makeCtrl(label, anchorOffsetX)
 		local btn = Creator.New("TextButton", {
 			Name                   = label,
 			AnchorPoint            = Vector2.new(1, 0.5),
@@ -183,7 +177,7 @@ function Window.new(config: WindowConfig): any
 	self._nav = nav
 
 	local searchEnabled = config.Search and config.Search.Enabled
-	local searchBar: any = nil
+	local searchBar= nil
 	if searchEnabled then
 		searchBar = SearchBar.new(gui, startX, startY + MAIN_H, MAIN_W)
 		self._searchBar = searchBar
@@ -195,7 +189,7 @@ function Window.new(config: WindowConfig): any
 		self:ToggleMinimize()
 	end)
 
-	local loadingScreen: any = nil
+	local loadingScreen= nil
 	if config.Loading and config.Loading.Enabled then
 		loadingScreen = LoadingScreen.new({
 			Title  = config.Loading.Title,
@@ -216,7 +210,7 @@ function Window.new(config: WindowConfig): any
 		sidebar:Reposition(y, MAIN_H)
 	end
 
-	local dragHandle = Drag.Attach(topBar, main, function(x: number, y: number)
+	local dragHandle = Drag.Attach(topBar, main, function(x, y)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
@@ -256,7 +250,7 @@ function Window:_AddDashboard()
 	self._tabCount = self._tabCount + 1
 end
 
-function Window:_SelectPage(id: string)
+function Window:_SelectPage(id)
 	if self._dashboard then
 		self._dashboard:SetVisible(id == "__dashboard")
 	end
@@ -267,7 +261,7 @@ function Window:_SelectPage(id: string)
 	self._activeId = id
 end
 
-function Window:AddTab(config: { Title: string, Icon: string? }): any
+function Window:AddTab(config)
 	local id  = config.Title
 	local tab = Tab.new(self, config)
 	tab._id   = id
@@ -286,7 +280,7 @@ function Window:AddTab(config: { Title: string, Icon: string? }): any
 	return tab
 end
 
-function Window:AddQuickAction(entry: { Id: string, Icon: string, OnClick: () -> () })
+function Window:AddQuickAction(entry)
 	self._sidebar:AddEntry(entry)
 end
 
@@ -297,7 +291,7 @@ function Window:DismissLoading()
 	end
 end
 
-function Window:SetLoadingStatus(text: string)
+function Window:SetLoadingStatus(text)
 	if self._loading then
 		self._loading:SetStatus(text)
 	end
@@ -340,11 +334,11 @@ function Window:ToggleMinimize()
 	end
 end
 
-function Window:SelectTab(id: string)
+function Window:SelectTab(id)
 	self:_SelectPage(id)
 end
 
-function Window:GetSearchBar(): any
+function Window:GetSearchBar()
 	return self._searchBar
 end
 

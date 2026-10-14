@@ -1,4 +1,3 @@
---!strict
 local RunService   = game:GetService("RunService")
 local Spring       = require(script.Parent.Parent.Utils.Spring)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
@@ -8,21 +7,16 @@ local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local SIDEBAR_W = 164
 local TRIGGER_W = 22
 
-export type TabEntry = {
-	Icon:     string,
-	Title:    string,
-	SelectFn: () -> (),
-}
 
 local EdgeReveal = {}
 EdgeReveal.__index = EdgeReveal
 
-function EdgeReveal.new(screenGui: ScreenGui, restoreFn: () -> ()): any
+function EdgeReveal.new(screenGui, restoreFn)
 	local self = setmetatable({}, EdgeReveal)
 	self._active      = false
-	self._leaveTimer  = nil :: thread?
-	self._tabs        = {} :: { TabEntry }
-	self._tabItems    = {} :: { TextButton }
+	self._leaveTimer  = nil
+	self._tabs        = {}
+	self._tabItems    = {}
 	self._restoreFn   = restoreFn
 
 	local t = ThemeManager.CurrentTheme
@@ -178,10 +172,10 @@ function EdgeReveal.new(screenGui: ScreenGui, restoreFn: () -> ()): any
 		}),
 	})
 
-	local springX = Spring.new(-SIDEBAR_W :: number, 22, 0.76)
+	local springX = Spring.new(-SIDEBAR_W, 22, 0.76)
 
-	local conn: RBXScriptConnection
-	conn = RunService.Heartbeat:Connect(function(dt: number)
+	local conn
+	conn = RunService.Heartbeat:Connect(function(dt)
 		if not self._active then return end
 		springX:Step(dt)
 		local x = math.round(springX.Position)
@@ -189,7 +183,7 @@ function EdgeReveal.new(screenGui: ScreenGui, restoreFn: () -> ()): any
 		triggerZone.Position  = UDim2.fromOffset(math.max(0, x + SIDEBAR_W - TRIGGER_W), 0)
 	end)
 
-	local function startSpring(target: number)
+	local function startSpring(target)
 		springX:SetTarget(target)
 	end
 
@@ -228,7 +222,7 @@ function EdgeReveal.new(screenGui: ScreenGui, restoreFn: () -> ()): any
 	return self
 end
 
-function EdgeReveal:AddTab(entry: TabEntry)
+function EdgeReveal:AddTab(entry)
 	table.insert(self._tabs, entry)
 	local t = ThemeManager.CurrentTheme
 
@@ -278,15 +272,15 @@ function EdgeReveal:AddTab(entry: TabEntry)
 			BackgroundTransparency = 0,
 			BackgroundColor3       = t.ControlBg,
 		})
-		local lbl = item:FindFirstChild("Label") :: TextLabel?
-		local ico = item:FindFirstChild("Icon")  :: TextLabel?
+		local lbl = item:FindFirstChild("Label")
+		local ico = item:FindFirstChild("Icon")
 		if lbl then Tween.Play(lbl, Tween.Fast, { TextColor3 = t.Text }) end
 		if ico then Tween.Play(ico, Tween.Fast, { TextColor3 = t.Accent }) end
 	end)
 	item.MouseLeave:Connect(function()
 		Tween.Play(item, Tween.Fast, { BackgroundTransparency = 1 })
-		local lbl = item:FindFirstChild("Label") :: TextLabel?
-		local ico = item:FindFirstChild("Icon")  :: TextLabel?
+		local lbl = item:FindFirstChild("Label")
+		local ico = item:FindFirstChild("Icon")
 		if lbl then Tween.Play(lbl, Tween.Fast, { TextColor3 = t.SubText }) end
 		if ico then Tween.Play(ico, Tween.Fast, { TextColor3 = t.SubText }) end
 	end)

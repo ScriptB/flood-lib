@@ -1,4 +1,3 @@
---!strict
 -- Modal Confirmation / Alert Dialog
 
 local Creator = require(script.Parent.Parent.Creator)
@@ -6,7 +5,7 @@ local Tween = require(script.Parent.Parent.Utils.Tween)
 
 local Dialog = {}
 
-function Dialog.Prompt(screenGui: ScreenGui, config: { Title: string, Content: string, OnConfirm: (() -> ())?, OnCancel: (() -> ())? })
+function Dialog.Prompt(screenGui, config)
     local backdrop = Creator.New("TextButton", {
         Name = "DialogBackdrop",
         Size = UDim2.fromScale(1, 1),

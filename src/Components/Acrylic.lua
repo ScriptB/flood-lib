@@ -1,11 +1,10 @@
---!strict
 -- Acrylic: Frosted glass / blur backdrop component
 
 local Creator = require(script.Parent.Parent.Creator)
 
 local Acrylic = {}
 
-function Acrylic.Create(parent: GuiObject): Frame
+function Acrylic.Create(parent)
     local acrylicFrame = Creator.New("Frame", {
         Name = "AcrylicBackdrop",
         Size = UDim2.fromScale(1, 1),

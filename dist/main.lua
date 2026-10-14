@@ -2,8 +2,8 @@
 -- https://github.com/ScriptB/flood-lib
 local __M = {}
 local function __R(n)
-    if __M[n] == nil then error("Flood: module not found: "..n,2) end
-    if type(__M[n])=="function" then __M[n]=__M[n]() end
+    if __M[n] == nil then error("Flood: module not found: "..n, 2) end
+    if type(__M[n]) == "function" then __M[n] = __M[n]() end
     return __M[n]
 end
 __M["Signal"]=function()
@@ -11,8 +11,6 @@ __M["Signal"]=function()
 
 local Signal = {}
 Signal.__index = Signal
-
-
 
 
 
@@ -82,7 +80,6 @@ local Maid = {}
 Maid.__index = Maid
 
 
-
 function Maid.new()
     return setmetatable({
         _tasks = {},
@@ -128,7 +125,6 @@ end
 __M["Spring"]=function()
 local Spring = {}
 Spring.__index = Spring
-
 
 
 function Spring.new(initial, speed, damper)
@@ -180,7 +176,6 @@ Tween.Settle = TweenInfo.new(0.28, Enum.EasingStyle.Exponential, Enum.EasingDire
 Tween.Slug   = TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 
 
-
 Tween.SpringPop    = { Speed = 32, Damper = 0.82 }
 Tween.SpringSettle = { Speed = 20, Damper = 0.78 }
 Tween.SpringSlug   = { Speed = 14, Damper = 0.72 }
@@ -193,11 +188,13 @@ function Tween.Play(instance, tweenInfo, properties)
 end
 
 function Tween.SpringAnimate(instance, props, preset)
-	local speed  = if preset then preset.Speed  else 20
-	local damper = if preset then preset.Damper else 0.78
+	local speed
+	if preset then speed = preset.Speed else speed = 20 end
+	local damper
+	if preset then damper = preset.Damper else damper = 0.78 end
 	local inst   = instance
 
-	local channels
+	local channels= {}
 
 	for key, target in props do
 		local current = inst[key]
@@ -356,7 +353,6 @@ __M["Drag"]=function()
 local UserInputService = game:GetService("UserInputService")
 
 local Drag = {}
-
 
 
 function Drag.Attach(handle, target, onMove)
@@ -564,6 +560,38 @@ end
 return Manager
 end
 
+__M["Icons"]=function()
+-- Icon asset directory & Lucide icon mapper for Flood UI Library
+
+local Icons = {
+    -- Common UI icons mapped to Roblox image asset IDs
+    Assets = {
+        ["home"] = "rbxassetid://10723407389",
+        ["settings"] = "rbxassetid://10734950309",
+        ["user"] = "rbxassetid://10747373176",
+        ["shield"] = "rbxassetid://10734951847",
+        ["sliders"] = "rbxassetid://10734952402",
+        ["code"] = "rbxassetid://10709790202",
+        ["crosshair"] = "rbxassetid://10709798950",
+        ["eye"] = "rbxassetid://10723415132",
+        ["search"] = "rbxassetid://10734883986",
+        ["chevron-down"] = "rbxassetid://10709790948",
+        ["chevron-right"] = "rbxassetid://10709791281",
+        ["check"] = "rbxassetid://10709790644",
+        ["x"] = "rbxassetid://10747384394",
+        ["bell"] = "rbxassetid://10709778789",
+        ["moon"] = "rbxassetid://10734886892",
+        ["sun"] = "rbxassetid://10734953351",
+    },
+}
+
+function Icons.Get(iconName)
+    return Icons.Assets[iconName] or Icons.Assets["home"]
+end
+
+return Icons
+end
+
 __M["Creator"]=function()
 -- Creator: Declarative instance factory, property applicator & theme registry
 
@@ -633,8 +661,8 @@ function Button.Create(parent, config)
 	local theme = ThemeManager.CurrentTheme
 
 	local hasDesc  = config.Description ~= nil
-	local baseH    = if hasDesc then 38 else 28
-
+	local baseH
+	if hasDesc then baseH = 38 else baseH = 28 end
 	local container = Creator.New("Frame", {
 		Name             = "Button_" .. config.Title,
 		Size             = UDim2.new(1, 0, 0, baseH),
@@ -652,9 +680,11 @@ function Button.Create(parent, config)
 		}),
 	})
 
-	local titleY    = if hasDesc then 5  else 0
-	local titleH    = if hasDesc then 14 else baseH
+	local titleY
 
+	if hasDesc then titleY = 5 else titleY = 0 end
+	local titleH
+	if hasDesc then titleH = 14 else titleH = baseH end
 	Creator.New("TextLabel", {
 		Name                   = "Title",
 		Position               = UDim2.fromOffset(9, titleY),
@@ -784,7 +814,7 @@ function Toggle.Create(parent, id, config)
 		AnchorPoint      = Vector2.new(1, 0.5),
 		Position         = UDim2.new(1, -9, 0.5, 0),
 		Size             = UDim2.fromOffset(30, 16),
-		BackgroundColor3 = if value then theme.Accent else theme.BadgeBg,
+		BackgroundColor3 = (function() if value then return theme.Accent else return theme.BadgeBg end end)(),
 		BorderSizePixel  = 0,
 		Parent           = container,
 	}, {
@@ -797,7 +827,7 @@ function Toggle.Create(parent, id, config)
 	local knob = Creator.New("Frame", {
 		Name             = "Knob",
 		AnchorPoint      = Vector2.new(0, 0.5),
-		Position         = if value then knobOn else knobOff,
+		Position         = (function() if value then return knobOn else return knobOff end end)(),
 		Size             = UDim2.fromOffset(12, 12),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BorderSizePixel  = 0,
@@ -1198,8 +1228,8 @@ function Dropdown.Create(parent, id, config)
 			local isSelected = val == selected
 			local optBtn = Creator.New("TextButton", {
 				Size                   = UDim2.new(1, 0, 0, 22),
-				BackgroundColor3       = if isSelected then theme.AccentMuted else theme.ControlBg,
-				BackgroundTransparency = if isSelected then 0.6 else 1,
+				BackgroundColor3       = (function() if isSelected then return theme.AccentMuted else return theme.ControlBg end end)(),
+				BackgroundTransparency = (function() if isSelected then return 0.6 else return 1 end end)(),
 				Text                   = "",
 				AutoButtonColor        = false,
 				ZIndex                 = 51,
@@ -1214,7 +1244,7 @@ function Dropdown.Create(parent, id, config)
 					TextSize               = 10,
 					FontFace               = Font.fromEnum(Enum.Font.Gotham),
 					TextXAlignment         = Enum.TextXAlignment.Left,
-					TextColor3             = if isSelected then theme.Text else theme.SubText,
+					TextColor3             = (function() if isSelected then return theme.Text else return theme.SubText end end)(),
 					ZIndex                 = 51,
 				}),
 			})
@@ -1241,7 +1271,8 @@ function Dropdown.Create(parent, id, config)
 				})
 			end)
 			optBtn.MouseLeave:Connect(function()
-				local tp = if val == selected then 0.6 else 1
+				local tp
+				if val == selected then tp = 0.6 else tp = 1 end
 				Tween.Play(optBtn, Tween.Fast, { BackgroundTransparency = tp })
 			end)
 			optBtn.MouseButton1Click:Connect(function()
@@ -2105,6 +2136,164 @@ end
 return Notification
 end
 
+__M["Dialog"]=function()
+-- Modal Confirmation / Alert Dialog
+
+local Creator = __R("Creator")
+local Tween = __R("Tween")
+
+local Dialog = {}
+
+function Dialog.Prompt(screenGui, config)
+    local backdrop = Creator.New("TextButton", {
+        Name = "DialogBackdrop",
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        Text = "",
+        ZIndex = 500,
+        Parent = screenGui,
+    })
+
+    local modal = Creator.New("Frame", {
+        Name = "DialogModal",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(360, 180),
+        ThemeTag = {
+            BackgroundColor3 = "Card",
+        },
+        Parent = backdrop,
+    }, {
+        Creator.New("UICorner", { CornerRadius = UDim.new(0, 12) }),
+        Creator.New("UIStroke", {
+            Thickness = 1,
+            ThemeTag = { Color = "Border" },
+        }),
+        Creator.New("TextLabel", {
+            Position = UDim2.fromOffset(20, 16),
+            Size = UDim2.new(1, -40, 0, 24),
+            BackgroundTransparency = 1,
+            Text = config.Title or "Dialog",
+            TextSize = 16,
+            FontFace = Font.fromEnum(Enum.Font.GothamBold),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ThemeTag = { TextColor3 = "Text" },
+        }),
+        Creator.New("TextLabel", {
+            Position = UDim2.fromOffset(20, 48),
+            Size = UDim2.new(1, -40, 0, 60),
+            BackgroundTransparency = 1,
+            Text = config.Content or "",
+            TextSize = 13,
+            TextWrapped = true,
+            FontFace = Font.fromEnum(Enum.Font.Gotham),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ThemeTag = { TextColor3 = "SubText" },
+        }),
+    })
+
+    local confirmBtn = Creator.New("TextButton", {
+        AnchorPoint = Vector2.new(1, 1),
+        Position = UDim2.new(1, -20, 1, -16),
+        Size = UDim2.fromOffset(90, 32),
+        Text = "Confirm",
+        TextSize = 13,
+        FontFace = Font.fromEnum(Enum.Font.GothamBold),
+        ThemeTag = {
+            BackgroundColor3 = "Accent",
+            TextColor3 = "Text",
+        },
+        Parent = modal,
+    }, {
+        Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+    })
+
+    confirmBtn.MouseButton1Click:Connect(function()
+        if config.OnConfirm then config.OnConfirm() end
+        backdrop:Destroy()
+    end)
+end
+
+return Dialog
+end
+
+__M["Acrylic"]=function()
+-- Acrylic: Frosted glass / blur backdrop component
+
+local Creator = __R("Creator")
+
+local Acrylic = {}
+
+function Acrylic.Create(parent)
+    local acrylicFrame = Creator.New("Frame", {
+        Name = "AcrylicBackdrop",
+        Size = UDim2.fromScale(1, 1),
+        Position = UDim2.fromScale(0, 0),
+        BorderSizePixel = 0,
+        BackgroundTransparency = 0.25,
+        ThemeTag = {
+            BackgroundColor3 = "Acrylic",
+        },
+        ZIndex = parent.ZIndex - 1,
+        Parent = parent,
+    }, {
+        Creator.New("UICorner", {
+            CornerRadius = UDim.new(0, 10),
+        }),
+    })
+
+    return acrylicFrame
+end
+
+return Acrylic
+end
+
+__M["Tooltip"]=function()
+-- Tooltip component for hover hints
+
+local Creator = __R("Creator")
+local Tween = __R("Tween")
+
+local Tooltip = {}
+
+function Tooltip.Attach(target, text)
+    local tooltip = Creator.New("TextLabel", {
+        Name = "Tooltip",
+        Size = UDim2.fromOffset(120, 26),
+        Visible = false,
+        Text = text,
+        TextSize = 12,
+        FontFace = Font.fromEnum(Enum.Font.GothamMedium),
+        ThemeTag = {
+            BackgroundColor3 = "Card",
+            TextColor3 = "Text",
+        },
+        ZIndex = 100,
+        Parent = target,
+    }, {
+        Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+        Creator.New("UIStroke", {
+            Thickness = 1,
+            ThemeTag = { Color = "Border" },
+        }),
+    })
+
+    target.MouseEnter:Connect(function()
+        tooltip.Visible = true
+        Tween.Play(tooltip, Tween.Fast, { BackgroundTransparency = 0, TextTransparency = 0 })
+    end)
+
+    target.MouseLeave:Connect(function()
+        tooltip.Visible = false
+    end)
+
+    return tooltip
+end
+
+return Tooltip
+end
+
 __M["Section"]=function()
 local Creator      = __R("Creator")
 local ThemeManager = __R("Manager")
@@ -2251,7 +2440,6 @@ local LoadingScreen = {}
 LoadingScreen.__index = LoadingScreen
 
 
-
 local FADE    = TweenInfo.new(0.38, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local DOT_ON  = TweenInfo.new(0.14)
 local DOT_OFF = TweenInfo.new(0.28)
@@ -2334,7 +2522,7 @@ function LoadingScreen.new(config)
 	dotLayout.Padding          = UDim.new(0, 6)
 	dotLayout.Parent           = dotRow
 
-	local dots
+	local dots= {}
 	for _ = 1, 3 do
 		local dot           = Instance.new("Frame")
 		dot.Size            = UDim2.fromOffset(4, 4)
@@ -2363,7 +2551,7 @@ function LoadingScreen.new(config)
 					Size = j == i
 						and UDim2.fromOffset(5, 5)
 						or UDim2.fromOffset(4, 4),
-				})
+				}):Play()
 			end
 			i = (i % 3) + 1
 			task.wait(0.38)
@@ -2406,6 +2594,8 @@ local NAV_W  = 62
 local BTN_SZ = 44
 local CORNER = 8
 local GAP    = 12
+
+
 
 local FloatingNav = {}
 FloatingNav.__index = FloatingNav
@@ -2652,7 +2842,6 @@ local GAP    = 10
 local CORNER = 8
 
 
-
 local SearchBar = {}
 SearchBar.__index = SearchBar
 
@@ -2791,7 +2980,7 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	end)
 	self._heartbeat = heartbeat
 
-	input:GetPropertyChangedSignal("Text")
+	input:GetPropertyChangedSignal("Text"):Connect(function()
 		self:_Refresh(input.Text)
 	end)
 
@@ -2839,7 +3028,7 @@ function SearchBar:_Refresh(query)
 	end
 
 	local lower = string.lower(query)
-	local matches
+	local matches= {}
 	for _, e in ipairs(self._entries) do
 		if string.find(string.lower(e.Label), lower, 1, true) then
 			table.insert(matches, e)
@@ -2935,6 +3124,327 @@ end
 return SearchBar
 end
 
+__M["EdgeReveal"]=function()
+local RunService   = game:GetService("RunService")
+local Spring       = __R("Spring")
+local Tween        = __R("Tween")
+local Creator      = __R("Creator")
+local ThemeManager = __R("Manager")
+
+local SIDEBAR_W = 164
+local TRIGGER_W = 22
+
+
+local EdgeReveal = {}
+EdgeReveal.__index = EdgeReveal
+
+function EdgeReveal.new(screenGui, restoreFn)
+	local self = setmetatable({}, EdgeReveal)
+	self._active      = false
+	self._leaveTimer  = nil
+	self._tabs        = {}
+	self._tabItems    = {}
+	self._restoreFn   = restoreFn
+
+	local t = ThemeManager.CurrentTheme
+
+	local triggerZone = Creator.New("Frame", {
+		Name                 = "EdgeTrigger",
+		Position             = UDim2.fromOffset(0, 0),
+		Size                 = UDim2.new(0, TRIGGER_W, 1, 0),
+		BackgroundTransparency = 1,
+		ZIndex               = 97,
+		Visible              = false,
+		Parent               = screenGui,
+	})
+
+	local sidebar = Creator.New("Frame", {
+		Name                   = "EdgeSidebar",
+		Position               = UDim2.fromOffset(-SIDEBAR_W, 0),
+		Size                   = UDim2.new(0, SIDEBAR_W, 1, 0),
+		BackgroundColor3       = t.Panel,
+		BackgroundTransparency = 0.08,
+		BorderSizePixel        = 0,
+		ClipsDescendants       = true,
+		ZIndex                 = 98,
+		Visible                = false,
+		Parent                 = screenGui,
+		ThemeTag               = { BackgroundColor3 = "Panel" },
+	}, {
+		Creator.New("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0,   Color3.fromRGB(28, 36, 58)),
+				ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 12, 20)),
+				ColorSequenceKeypoint.new(1,   Color3.fromRGB(6,   8, 14)),
+			}),
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0,   0.0),
+				NumberSequenceKeypoint.new(1,   0.1),
+			}),
+			Rotation = 100,
+		}),
+		Creator.New("UIStroke", {
+			Thickness      = 1,
+			Color          = t.Border,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			ThemeTag       = { Color = "Border" },
+		}),
+	})
+
+	Creator.New("Frame", {
+		Name                   = "RightEdge",
+		AnchorPoint            = Vector2.new(1, 0),
+		Position               = UDim2.fromScale(1, 0),
+		Size                   = UDim2.new(0, 1, 1, 0),
+		BackgroundColor3       = t.BorderBright,
+		BackgroundTransparency = 0.6,
+		BorderSizePixel        = 0,
+		ZIndex                 = 99,
+		ThemeTag               = { BackgroundColor3 = "BorderBright" },
+		Parent                 = sidebar,
+	})
+
+	local header = Creator.New("Frame", {
+		Name                   = "Header",
+		Size                   = UDim2.new(1, 0, 0, 60),
+		BackgroundTransparency = 1,
+		ZIndex                 = 99,
+		Parent                 = sidebar,
+	}, {
+		Creator.New("Frame", {
+			Name             = "AccentMark",
+			AnchorPoint      = Vector2.new(0, 0.5),
+			Position         = UDim2.fromOffset(18, 30),
+			Size             = UDim2.fromOffset(3, 20),
+			BackgroundColor3 = t.Accent,
+			BorderSizePixel  = 0,
+			ZIndex           = 99,
+			ThemeTag         = { BackgroundColor3 = "Accent" },
+		}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, 2) }) }),
+		Creator.New("TextLabel", {
+			Name                 = "LibName",
+			AnchorPoint          = Vector2.new(0, 0.5),
+			Position             = UDim2.fromOffset(30, 30),
+			Size                 = UDim2.new(1, -34, 0, 16),
+			BackgroundTransparency = 1,
+			Text                 = "FLOOD",
+			TextSize             = 11,
+			FontFace             = Font.fromEnum(Enum.Font.GothamMedium),
+			TextColor3           = t.Text,
+			TextXAlignment       = Enum.TextXAlignment.Left,
+			ZIndex               = 99,
+			ThemeTag             = { TextColor3 = "Text" },
+		}),
+		Creator.New("Frame", {
+			Name             = "Divider",
+			AnchorPoint      = Vector2.new(0, 1),
+			Position         = UDim2.fromScale(0, 1),
+			Size             = UDim2.new(1, 0, 0, 1),
+			BackgroundColor3 = t.Border,
+			BorderSizePixel  = 0,
+			ZIndex           = 99,
+			ThemeTag         = { BackgroundColor3 = "Border" },
+		}),
+	})
+
+	local tabList = Creator.New("Frame", {
+		Name                   = "TabList",
+		Position               = UDim2.fromOffset(0, 61),
+		Size                   = UDim2.new(1, 0, 1, -93),
+		BackgroundTransparency = 1,
+		ClipsDescendants       = true,
+		ZIndex                 = 99,
+		Parent                 = sidebar,
+	}, {
+		Creator.New("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding   = UDim.new(0, 2),
+		}),
+		Creator.New("UIPadding", {
+			PaddingTop    = UDim.new(0, 8),
+			PaddingBottom = UDim.new(0, 8),
+			PaddingLeft   = UDim.new(0, 8),
+			PaddingRight  = UDim.new(0, 8),
+		}),
+	})
+
+	Creator.New("Frame", {
+		Name                   = "Footer",
+		AnchorPoint            = Vector2.new(0, 1),
+		Position               = UDim2.fromScale(0, 1),
+		Size                   = UDim2.new(1, 0, 0, 32),
+		BackgroundTransparency = 1,
+		ZIndex                 = 99,
+		Parent                 = sidebar,
+	}, {
+		Creator.New("Frame", {
+			Name             = "Divider",
+			Size             = UDim2.new(1, 0, 0, 1),
+			BackgroundColor3 = t.Border,
+			BorderSizePixel  = 0,
+			ZIndex           = 99,
+			ThemeTag         = { BackgroundColor3 = "Border" },
+		}),
+		Creator.New("TextLabel", {
+			Position             = UDim2.fromOffset(18, 2),
+			Size                 = UDim2.new(1, -18, 1, -2),
+			BackgroundTransparency = 1,
+			Text                 = "hover to restore",
+			TextSize             = 9,
+			FontFace             = Font.fromEnum(Enum.Font.Gotham),
+			TextColor3           = t.TextDisabled,
+			TextXAlignment       = Enum.TextXAlignment.Left,
+			ZIndex               = 99,
+			ThemeTag             = { TextColor3 = "TextDisabled" },
+		}),
+	})
+
+	local springX = Spring.new(-SIDEBAR_W, 22, 0.76)
+
+	local conn
+	conn = RunService.Heartbeat:Connect(function(dt)
+		if not self._active then return end
+		springX:Step(dt)
+		local x = math.round(springX.Position)
+		sidebar.Position      = UDim2.fromOffset(x, 0)
+		triggerZone.Position  = UDim2.fromOffset(math.max(0, x + SIDEBAR_W - TRIGGER_W), 0)
+	end)
+
+	local function startSpring(target)
+		springX:SetTarget(target)
+	end
+
+	local function cancelLeave()
+		if self._leaveTimer then
+			task.cancel(self._leaveTimer)
+			self._leaveTimer = nil
+		end
+	end
+
+	local function scheduleHide()
+		cancelLeave()
+		self._leaveTimer = task.delay(0.55, function()
+			self._leaveTimer = nil
+			startSpring(-SIDEBAR_W)
+		end)
+	end
+
+	triggerZone.MouseEnter:Connect(function()
+		cancelLeave()
+		startSpring(0)
+	end)
+	sidebar.MouseEnter:Connect(function()
+		cancelLeave()
+		startSpring(0)
+	end)
+	triggerZone.MouseLeave:Connect(scheduleHide)
+	sidebar.MouseLeave:Connect(scheduleHide)
+
+	self._triggerZone = triggerZone
+	self._sidebar     = sidebar
+	self._tabList     = tabList
+	self._springX     = springX
+	self._conn        = conn
+
+	return self
+end
+
+function EdgeReveal:AddTab(entry)
+	table.insert(self._tabs, entry)
+	local t = ThemeManager.CurrentTheme
+
+	local item = Creator.New("TextButton", {
+		Name                   = "Tab_" .. entry.Title,
+		Size                   = UDim2.new(1, 0, 0, 34),
+		BackgroundColor3       = t.ControlBg,
+		BackgroundTransparency = 1,
+		Text                   = "",
+		AutoButtonColor        = false,
+		BorderSizePixel        = 0,
+		ZIndex                 = 100,
+		Parent                 = self._tabList,
+	}, {
+		Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		Creator.New("TextLabel", {
+			Name                   = "Icon",
+			AnchorPoint            = Vector2.new(0, 0.5),
+			Position               = UDim2.fromOffset(8, 17),
+			Size                   = UDim2.fromOffset(20, 20),
+			BackgroundTransparency = 1,
+			Text                   = entry.Icon,
+			TextSize               = 11,
+			FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
+			TextColor3             = t.SubText,
+			ZIndex                 = 100,
+			ThemeTag               = { TextColor3 = "SubText" },
+		}),
+		Creator.New("TextLabel", {
+			Name                   = "Label",
+			AnchorPoint            = Vector2.new(0, 0.5),
+			Position               = UDim2.fromOffset(32, 17),
+			Size                   = UDim2.new(1, -36, 0, 14),
+			BackgroundTransparency = 1,
+			Text                   = entry.Title,
+			TextSize               = 10,
+			FontFace               = Font.fromEnum(Enum.Font.Gotham),
+			TextColor3             = t.SubText,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+			ZIndex                 = 100,
+			ThemeTag               = { TextColor3 = "SubText" },
+		}),
+	})
+
+	item.MouseEnter:Connect(function()
+		Tween.Play(item, Tween.Fast, {
+			BackgroundTransparency = 0,
+			BackgroundColor3       = t.ControlBg,
+		})
+		local lbl = item:FindFirstChild("Label")
+		local ico = item:FindFirstChild("Icon")
+		if lbl then Tween.Play(lbl, Tween.Fast, { TextColor3 = t.Text }) end
+		if ico then Tween.Play(ico, Tween.Fast, { TextColor3 = t.Accent }) end
+	end)
+	item.MouseLeave:Connect(function()
+		Tween.Play(item, Tween.Fast, { BackgroundTransparency = 1 })
+		local lbl = item:FindFirstChild("Label")
+		local ico = item:FindFirstChild("Icon")
+		if lbl then Tween.Play(lbl, Tween.Fast, { TextColor3 = t.SubText }) end
+		if ico then Tween.Play(ico, Tween.Fast, { TextColor3 = t.SubText }) end
+	end)
+	item.MouseButton1Click:Connect(function()
+		entry.SelectFn()
+	end)
+
+	table.insert(self._tabItems, item)
+end
+
+function EdgeReveal:Activate()
+	self._active = true
+	self._springX.Target   = -SIDEBAR_W
+	self._springX.Position = -SIDEBAR_W
+	self._springX.Velocity = 0
+	self._triggerZone.Visible = true
+	self._sidebar.Visible     = true
+end
+
+function EdgeReveal:Deactivate()
+	self._active = false
+	self._springX:SetTarget(-SIDEBAR_W)
+	task.delay(0.55, function()
+		if not self._active then
+			self._triggerZone.Visible = false
+			self._sidebar.Visible     = false
+		end
+	end)
+end
+
+function EdgeReveal:Destroy()
+	self._conn:Disconnect()
+end
+
+return EdgeReveal
+end
+
 __M["EdgeSidebar"]=function()
 local RunService   = game:GetService("RunService")
 local Creator      = __R("Creator")
@@ -2948,7 +3458,6 @@ local INNER_OX = -8
 local BTN_SZ   = 36
 local CORNER   = 10
 local GAP_TOP  = 8
-
 
 
 local EdgeSidebar = {}
@@ -3416,7 +3925,7 @@ function Tab.new(window, config)
 end
 
 function Tab:AddSection(title, column)
-	self._sectionCount += 1
+	self._sectionCount = self._sectionCount + 1
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
 	sec._frame.LayoutOrder = self._sectionCount
@@ -3468,7 +3977,6 @@ local MAIN_W   = 680
 local MAIN_H   = 460
 local TOPBAR_H = 38
 local CORNER   = 10
-
 
 
 local Window = {}

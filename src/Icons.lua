@@ -1,4 +1,3 @@
---!strict
 -- Icon asset directory & Lucide icon mapper for Flood UI Library
 
 local Icons = {
@@ -23,7 +22,7 @@ local Icons = {
     },
 }
 
-function Icons.Get(iconName: string): string
+function Icons.Get(iconName)
     return Icons.Assets[iconName] or Icons.Assets["home"]
 end
 

@@ -1,29 +1,26 @@
---!strict
 local ThemeManager   = require(script.Themes.Manager)
 local Window         = require(script.Components.Window)
 local Notification   = require(script.Components.Notification)
 
 local Library = {
-	Flags   = {} :: { [string]: any },
-	Options = {} :: { [string]: any },
+	Flags   = {},
+	Options = {},
 	Themes  = ThemeManager.Themes,
 }
 
-local function bindFlag(lib: typeof(Library), id: string, obj: any)
+local function bindFlag(lib, id, obj)
 	if obj and obj.OnChanged then
 		lib.Flags[id] = obj.Value
-		obj.OnChanged:Connect(function(v: any)
+		obj.OnChanged:Connect(function(v)
 			lib.Flags[id] = v
 		end)
 	end
 end
 
-local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
+local function makeSecApi(lib, sec, searchBar)
 	local secApi = {}
 
-	function secApi:AddToggle(id: string, cfg: {
-		Title: string, Default: boolean?, Callback: ((boolean) -> ())?
-	}): any
+	function secApi:AddToggle(id, cfg)
 		local obj = sec:AddToggle(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -33,10 +30,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddSlider(id: string, cfg: {
-		Title: string, Min: number, Max: number, Default: number?,
-		Rounding: number?, Suffix: string?, Callback: ((number) -> ())?
-	}): any
+	function secApi:AddSlider(id, cfg)
 		local obj = sec:AddSlider(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -46,7 +40,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddButton(cfg: { Title: string, Description: string?, Callback: (() -> ())? }): any
+	function secApi:AddButton(cfg)
 		local obj = sec:AddButton(cfg)
 		if searchBar then
 			searchBar:RegisterElement({ Id = cfg.Title, Label = cfg.Title, TabId = "", SelectFn = cfg.Callback or function() end })
@@ -54,9 +48,7 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddDropdown(id: string, cfg: {
-		Title: string, Values: { string }, Default: string?, Callback: ((string) -> ())?
-	}): any
+	function secApi:AddDropdown(id, cfg)
 		local obj = sec:AddDropdown(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
@@ -66,69 +58,58 @@ local function makeSecApi(lib: typeof(Library), sec: any, searchBar: any): any
 		return obj
 	end
 
-	function secApi:AddInput(id: string, cfg: {
-		Title: string, Default: string?, Placeholder: string?, Callback: ((string) -> ())?
-	}): any
+	function secApi:AddInput(id, cfg)
 		local obj = sec:AddInput(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddKeybind(id: string, cfg: {
-		Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())?
-	}): any
+	function secApi:AddKeybind(id, cfg)
 		local obj = sec:AddKeybind(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddColorpicker(id: string, cfg: {
-		Title: string, Default: Color3?, Callback: ((Color3) -> ())?
-	}): any
+	function secApi:AddColorpicker(id, cfg)
 		local obj = sec:AddColorpicker(id, cfg)
 		bindFlag(lib, id, obj)
 		lib.Options[id] = obj
 		return obj
 	end
 
-	function secApi:AddParagraph(cfg: { Title: string, Content: string }): any
+	function secApi:AddParagraph(cfg)
 		return sec:AddParagraph(cfg)
 	end
 
-	function secApi:AddDivider(): any
+	function secApi:AddDivider()
 		return sec:AddDivider()
 	end
 
 	return secApi
 end
 
-local function makeTabApi(lib: typeof(Library), tab: any, searchBar: any): any
+local function makeTabApi(lib, tab, searchBar)
 	local tabApi = {}
 
-	function tabApi:AddSection(title: string?, column: number?): any
+	function tabApi:AddSection(title, column)
 		local sec = tab:AddSection(title, column)
 		return makeSecApi(lib, sec, searchBar)
 	end
 
-	function tabApi:AddLeftSection(title: string?): any
+	function tabApi:AddLeftSection(title)
 		return tabApi:AddSection(title, 1)
 	end
 
-	function tabApi:AddRightSection(title: string?): any
+	function tabApi:AddRightSection(title)
 		return tabApi:AddSection(title, 2)
 	end
 
 	return tabApi
 end
 
-function Library:CreateWindow(config: {
-	Title:   string?,
-	Loading: { Enabled: boolean?, Title: string? }?,
-	Search:  { Enabled: boolean? }?,
-	Theme:   string?,
-}): any
+function Library:CreateWindow(config)
 	if config.Theme then
 		ThemeManager.SetTheme(config.Theme)
 	end
@@ -139,16 +120,16 @@ function Library:CreateWindow(config: {
 
 	local winApi = {}
 
-	function winApi:AddTab(tabConfig: { Title: string, Icon: string? }): any
+	function winApi:AddTab(tabConfig)
 		local tab = win:AddTab(tabConfig)
 		return makeTabApi(Library, tab, searchBar)
 	end
 
-	function winApi:AddQuickAction(entry: { Id: string, Icon: string, OnClick: () -> () })
+	function winApi:AddQuickAction(entry)
 		win:AddQuickAction(entry)
 	end
 
-	function winApi:SelectTab(id: string)
+	function winApi:SelectTab(id)
 		win:SelectTab(id)
 	end
 
@@ -156,11 +137,11 @@ function Library:CreateWindow(config: {
 		win:DismissLoading()
 	end
 
-	function winApi:SetLoadingStatus(text: string)
+	function winApi:SetLoadingStatus(text)
 		win:SetLoadingStatus(text)
 	end
 
-	function winApi:SetVisible(visible: boolean)
+	function winApi:SetVisible(visible)
 		if visible then win:Show() else win:Hide() end
 	end
 
@@ -183,25 +164,25 @@ function Library:CreateWindow(config: {
 	return winApi
 end
 
-function Library:SetTheme(name: string)
+function Library:SetTheme(name)
 	ThemeManager.SetTheme(name)
 	self.Themes = ThemeManager.Themes
 end
 
-function Library:GetTheme(): { [string]: any }
+function Library:GetTheme()
 	return ThemeManager.CurrentTheme
 end
 
-function Library:GetThemeName(): string
+function Library:GetThemeName()
 	return ThemeManager.CurrentThemeName
 end
 
-function Library:RegisterTheme(name: string, themeTable: { [string]: any })
+function Library:RegisterTheme(name, themeTable)
 	ThemeManager.RegisterTheme(name, themeTable)
 	self.Themes = ThemeManager.Themes
 end
 
-function Library:Notify(config: { Title: string, Content: string, Duration: number? })
+function Library:Notify(config)
 	Notification.Notify(config)
 end
 

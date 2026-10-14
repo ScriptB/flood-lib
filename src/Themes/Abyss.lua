@@ -1,4 +1,3 @@
---!strict
 return {
     Name = "Abyss",
     Canvas = Color3.fromRGB(5, 6, 8),

@@ -1,4 +1,3 @@
---!strict
 local UserInputService = game:GetService("UserInputService")
 local Creator          = require(script.Parent.Parent.Creator)
 local ThemeManager     = require(script.Parent.Parent.Themes.Manager)
@@ -15,18 +14,18 @@ local HUE_STOPS = {
     ColorSequenceKeypoint.new(1,    Color3.fromRGB(255,   0,   0)),
 }
 
-local function clamp01(v: number): number
+local function clamp01(v)
     return math.clamp(v, 0, 1)
 end
 
-local function relativePos(inputPos: Vector3, frame: Frame): Vector2
+local function relativePos(inputPos, frame)
     return Vector2.new(
         clamp01((inputPos.X - frame.AbsolutePosition.X) / frame.AbsoluteSize.X),
         clamp01((inputPos.Y - frame.AbsolutePosition.Y) / frame.AbsoluteSize.Y)
     )
 end
 
-local function hexFromColor(c: Color3): string
+local function hexFromColor(c)
     return string.format("#%02X%02X%02X",
         math.floor(c.R * 255 + 0.5),
         math.floor(c.G * 255 + 0.5),
@@ -34,7 +33,7 @@ local function hexFromColor(c: Color3): string
     )
 end
 
-local function colorFromHex(hex: string): Color3?
+local function colorFromHex(hex)
     hex = hex:gsub("^#", "")
     if #hex == 3 then
         hex = hex:gsub("(.)", "%1%1")
@@ -49,7 +48,7 @@ end
 
 local Colorpicker = {}
 
-function Colorpicker.Create(parent: Instance, id: string, config: { Title: string, Default: Color3?, Callback: ((Color3) -> ())? })
+function Colorpicker.Create(parent, id, config)
     local initColor = config.Default or Color3.fromRGB(0, 168, 255)
     local h, s, v   = Color3.toHSV(initColor)
     local alpha      = 1
@@ -114,7 +113,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
-    }) :: TextButton
+    })
 
     -- =========================================================================
     -- PICKER PANEL (hidden until swatch clicked, 168px tall)
@@ -197,7 +196,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
             BackgroundTransparency = 1,
             Text = "",
         }),
-    }) :: Frame
+    })
 
     local svCursor = Creator.New("Frame", {
         Name = "SVCursor",
@@ -225,7 +224,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         Creator.New("UICorner", { CornerRadius = UDim.new(1, 0) }),
         Creator.New("UIGradient", { Color = ColorSequence.new(HUE_STOPS) }),
         Creator.New("TextButton", { Name = "HueInput", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "" }),
-    }) :: Frame
+    })
 
     local hueCursor = Creator.New("Frame", {
         Name = "HueCursor",
@@ -259,7 +258,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
             }),
         }),
         Creator.New("TextButton", { Name = "AlphaInput", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "" }),
-    }) :: Frame
+    })
 
     local alphaCursor = Creator.New("Frame", {
         Name = "AlphaCursor",
@@ -303,7 +302,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
         Creator.New("UIPadding", { PaddingLeft = UDim.new(0, 6) }),
-    }) :: TextBox
+    })
 
     local previewSwatch = Creator.New("Frame", {
         Name = "Preview",
@@ -316,7 +315,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 3) }),
         Creator.New("UIStroke", { Thickness = 1, Color = theme.Border, ThemeTag = { Color = "Border" } }),
-    }) :: Frame
+    })
 
     -- =========================================================================
     -- STATE UPDATE HELPERS
@@ -333,7 +332,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         previewSwatch.BackgroundColor3 = color
         svSquare.BackgroundColor3      = Color3.fromHSV(h, 1, 1)
 
-        local alphaGrad = alphaStrip:FindFirstChildOfClass("UIGradient") :: UIGradient?
+        local alphaGrad = alphaStrip:FindFirstChildOfClass("UIGradient")
         if alphaGrad then
             alphaGrad.Color = ColorSequence.new(Color3.fromHSV(h, s, v), Color3.fromHSV(h, s, v))
         end
@@ -355,7 +354,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
         alphaCursor.Position = UDim2.new(alpha, 0, 0.5, 0)
     end
 
-    function colorObj:SetValue(newColor: Color3)
+    function colorObj:SetValue(newColor)
         local nh, ns, nv = Color3.toHSV(newColor)
         h, s, v = nh, ns, nv
         updateSVCursor()
@@ -377,7 +376,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- SV SQUARE DRAG
     -- =========================================================================
-    local svInput = svSquare:FindFirstChild("SVInput") :: TextButton
+    local svInput = svSquare:FindFirstChild("SVInput")
     svInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             svDragging = true
@@ -414,7 +413,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- HUE STRIP DRAG
     -- =========================================================================
-    local hueInput = hueStrip:FindFirstChild("HueInput") :: TextButton
+    local hueInput = hueStrip:FindFirstChild("HueInput")
     hueInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             hueDragging = true
@@ -427,7 +426,7 @@ function Colorpicker.Create(parent: Instance, id: string, config: { Title: strin
     -- =========================================================================
     -- ALPHA STRIP DRAG
     -- =========================================================================
-    local alphaInput = alphaStrip:FindFirstChild("AlphaInput") :: TextButton
+    local alphaInput = alphaStrip:FindFirstChild("AlphaInput")
     alphaInput.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 then
             aDragging = true

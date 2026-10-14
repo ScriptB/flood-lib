@@ -1,10 +1,9 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 
 local Paragraph = {}
 
-function Paragraph.Create(parent: Instance, config: { Title: string, Content: string })
+function Paragraph.Create(parent, config)
     local theme = ThemeManager.CurrentTheme
 
     local container = Creator.New("Frame", {

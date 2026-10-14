@@ -1,19 +1,18 @@
---!strict
 -- Creator: Declarative instance factory, property applicator & theme registry
 
 local ThemeManager = require(script.Parent.Themes.Manager)
 
 local Creator = {
-    Registry = {} :: { [Instance]: { [string]: string } },
+    Registry = {},
 }
 
-function Creator.New(className: string, properties: { [string]: any }, children: { Instance }?): Instance
+function Creator.New(className, properties, children)
     local instance = Instance.new(className)
     local themeTag = properties.ThemeTag
     properties.ThemeTag = nil
 
     for prop, val in pairs(properties) do
-        (instance :: any)[prop] = val
+        (instance)[prop] = val
     end
 
     if themeTag then
@@ -22,7 +21,7 @@ function Creator.New(className: string, properties: { [string]: any }, children:
         for prop, token in pairs(themeTag) do
             local color = currentTheme[token]
             if color ~= nil then
-                (instance :: any)[prop] = color
+                (instance)[prop] = color
             end
         end
     end
@@ -36,14 +35,14 @@ function Creator.New(className: string, properties: { [string]: any }, children:
     return instance
 end
 
-function Creator.UpdateTheme(newTheme: { [string]: any }?)
+function Creator.UpdateTheme(newTheme)
     local theme = newTheme or ThemeManager.CurrentTheme
     for instance, tagMap in pairs(Creator.Registry) do
         if instance.Parent ~= nil then
             for prop, token in pairs(tagMap) do
                 local color = theme[token]
                 if color ~= nil then
-                    (instance :: any)[prop] = color
+                    (instance)[prop] = color
                 end
             end
         else

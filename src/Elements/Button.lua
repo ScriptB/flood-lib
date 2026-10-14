@@ -1,16 +1,15 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
 
 local Button = {}
 
-function Button.Create(parent: Instance, config: { Title: string, Description: string?, Callback: (() -> ())? })
+function Button.Create(parent, config)
 	local theme = ThemeManager.CurrentTheme
 
 	local hasDesc  = config.Description ~= nil
-	local baseH    = if hasDesc then 38 else 28
-
+	local baseH
+	if hasDesc then baseH = 38 else baseH = 28 end
 	local container = Creator.New("Frame", {
 		Name             = "Button_" .. config.Title,
 		Size             = UDim2.new(1, 0, 0, baseH),
@@ -28,9 +27,11 @@ function Button.Create(parent: Instance, config: { Title: string, Description: s
 		}),
 	})
 
-	local titleY    = if hasDesc then 5  else 0
-	local titleH    = if hasDesc then 14 else baseH
+	local titleY
 
+	if hasDesc then titleY = 5 else titleY = 0 end
+	local titleH
+	if hasDesc then titleH = 14 else titleH = baseH end
 	Creator.New("TextLabel", {
 		Name                   = "Title",
 		Position               = UDim2.fromOffset(9, titleY),
@@ -51,7 +52,7 @@ function Button.Create(parent: Instance, config: { Title: string, Description: s
 			Position               = UDim2.fromOffset(9, 20),
 			Size                   = UDim2.new(1, -32, 0, 13),
 			BackgroundTransparency = 1,
-			Text                   = config.Description :: string,
+			Text                   = config.Description,
 			TextSize               = 9,
 			FontFace               = Font.fromEnum(Enum.Font.Gotham),
 			TextXAlignment         = Enum.TextXAlignment.Left,

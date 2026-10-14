@@ -1,4 +1,3 @@
---!strict
 local Signal = require(script.Parent.Parent.Utils.Signal)
 local Ocean  = require(script.Parent.Ocean)
 local Dark   = require(script.Parent.Dark)
@@ -17,11 +16,11 @@ local Manager = {
     _changed = Signal.new(),
 }
 
-function Manager.GetTheme(name: string)
+function Manager.GetTheme(name)
     return Manager.Themes[name] or Manager.CurrentTheme
 end
 
-function Manager.SetTheme(name: string)
+function Manager.SetTheme(name)
     local theme = Manager.Themes[name]
     if not theme then return end
     Manager.CurrentTheme     = theme
@@ -29,11 +28,11 @@ function Manager.SetTheme(name: string)
     Manager._changed:Fire(theme)
 end
 
-function Manager.OnThemeChanged(fn: (theme: { [string]: any }) -> ()): { Disconnect: () -> () }
+function Manager.OnThemeChanged(fn)
     return Manager._changed:Connect(fn)
 end
 
-function Manager.RegisterTheme(name: string, themeTable: { [string]: any })
+function Manager.RegisterTheme(name, themeTable)
     Manager.Themes[name] = themeTable
 end
 

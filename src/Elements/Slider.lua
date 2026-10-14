@@ -1,4 +1,3 @@
---!strict
 local UserInputService = game:GetService("UserInputService")
 local Creator          = require(script.Parent.Parent.Creator)
 local ThemeManager     = require(script.Parent.Parent.Themes.Manager)
@@ -7,15 +6,7 @@ local Signal           = require(script.Parent.Parent.Utils.Signal)
 
 local Slider = {}
 
-function Slider.Create(parent: Instance, id: string, config: {
-	Title:    string,
-	Min:      number,
-	Max:      number,
-	Default:  number?,
-	Rounding: number?,
-	Suffix:   string?,
-	Callback: ((number) -> ())?,
-})
+function Slider.Create(parent, id, config)
 	local min       = config.Min     or 0
 	local max       = config.Max     or 100
 	local rounding  = config.Rounding or 0
@@ -117,9 +108,9 @@ function Slider.Create(parent: Instance, id: string, config: {
 		OnChanged = onChanged,
 	}
 
-	local valueLabel = valueBadge:FindFirstChild("ValueLabel") :: TextLabel
+	local valueLabel = valueBadge:FindFirstChild("ValueLabel")
 
-	local function setValue(val: number)
+	local function setValue(val)
 		val = math.clamp(val, min, max)
 		if rounding > 0 then
 			val = math.floor(val * (10 ^ rounding) + 0.5) / (10 ^ rounding)

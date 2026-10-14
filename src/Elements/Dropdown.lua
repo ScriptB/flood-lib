@@ -1,4 +1,3 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
@@ -6,12 +5,7 @@ local Signal       = require(script.Parent.Parent.Utils.Signal)
 
 local Dropdown = {}
 
-function Dropdown.Create(parent: Instance, id: string, config: {
-	Title:    string,
-	Values:   { string },
-	Default:  string?,
-	Callback: ((string) -> ())?,
-})
+function Dropdown.Create(parent, id, config)
 	local values    = config.Values or {}
 	local selected  = config.Default or (values[1] or "")
 	local opened    = false
@@ -95,19 +89,19 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 
 	-- Overlay list: parented to ScreenGui to avoid clipping by ScrollingFrame
 	local optionListHeight = #values * 22 + 8
-	local overlayList: Frame? = nil
+	local overlayList= nil
 
 	local dropdownObj = {
 		Value     = selected,
 		OnChanged = onChanged,
 	}
 
-	local selectedLabel = valueBadge:FindFirstChild("SelectedText") :: TextLabel
+	local selectedLabel = valueBadge:FindFirstChild("SelectedText")
 
 	local function closeList()
 		opened = false
 		if overlayList then
-			local ol = overlayList :: Frame
+			local ol = overlayList
 			Tween.Play(ol, Tween.Fast, { Size = UDim2.fromOffset(ol.Size.X.Offset, 0) })
 			task.delay(0.16, function()
 				if not opened then
@@ -115,13 +109,13 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 				end
 			end)
 		end
-		local chevron = valueBadge:FindFirstChild("Chevron") :: TextLabel?
+		local chevron = valueBadge:FindFirstChild("Chevron")
 		if chevron then
 			Tween.Play(chevron, Tween.Fast, { Rotation = 0 })
 		end
 	end
 
-	local function selectValue(val: string)
+	local function selectValue(val)
 		selected = val
 		dropdownObj.Value = val
 		selectedLabel.Text = val
@@ -175,8 +169,8 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 			local isSelected = val == selected
 			local optBtn = Creator.New("TextButton", {
 				Size                   = UDim2.new(1, 0, 0, 22),
-				BackgroundColor3       = if isSelected then theme.AccentMuted else theme.ControlBg,
-				BackgroundTransparency = if isSelected then 0.6 else 1,
+				BackgroundColor3       = (function() if isSelected then return theme.AccentMuted else return theme.ControlBg end end)(),
+				BackgroundTransparency = (function() if isSelected then return 0.6 else return 1 end end)(),
 				Text                   = "",
 				AutoButtonColor        = false,
 				ZIndex                 = 51,
@@ -191,7 +185,7 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 					TextSize               = 10,
 					FontFace               = Font.fromEnum(Enum.Font.Gotham),
 					TextXAlignment         = Enum.TextXAlignment.Left,
-					TextColor3             = if isSelected then theme.Text else theme.SubText,
+					TextColor3             = (function() if isSelected then return theme.Text else return theme.SubText end end)(),
 					ZIndex                 = 51,
 				}),
 			})
@@ -218,7 +212,8 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 				})
 			end)
 			optBtn.MouseLeave:Connect(function()
-				local tp = if val == selected then 0.6 else 1
+				local tp
+				if val == selected then tp = 0.6 else tp = 1 end
 				Tween.Play(optBtn, Tween.Fast, { BackgroundTransparency = tp })
 			end)
 			optBtn.MouseButton1Click:Connect(function()
@@ -242,7 +237,7 @@ function Dropdown.Create(parent: Instance, id: string, config: {
 			closeList()
 		else
 			opened = true
-			local chevron = valueBadge:FindFirstChild("Chevron") :: TextLabel?
+			local chevron = valueBadge:FindFirstChild("Chevron")
 			if chevron then Tween.Play(chevron, Tween.Fast, { Rotation = 180 }) end
 			buildOverlay()
 		end

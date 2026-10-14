@@ -1,16 +1,8 @@
---!strict
 -- Maid / Task cleanup manager for connection and resource lifecycle
 
 local Maid = {}
 Maid.__index = Maid
 
-export type Destructible = {
-    Destroy: (self: any) -> (),
-} | {
-    disconnect: (self: any) -> (),
-} | {
-    Disconnect: (self: any) -> (),
-} | RBXScriptConnection | Instance | () -> ()
 
 function Maid.new()
     return setmetatable({
@@ -18,7 +10,7 @@ function Maid.new()
     }, Maid)
 end
 
-function Maid:GiveTask(taskItem: Destructible): number
+function Maid:GiveTask(taskItem)
     local id = #self._tasks + 1
     self._tasks[id] = taskItem
     return id

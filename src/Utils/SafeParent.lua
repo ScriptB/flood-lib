@@ -1,10 +1,9 @@
---!strict
 local RunService = game:GetService("RunService")
 local CoreGui    = game:GetService("CoreGui")
 local Players    = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 
-local function SafeParent(gui: ScreenGui): ()
+local function SafeParent(gui)
 	if RunService:IsStudio() and not RunService:IsRunning() then
 		local ok = pcall(function()
 			local existing = StarterGui:FindFirstChild(gui.Name)

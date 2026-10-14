@@ -1,4 +1,3 @@
---!strict
 -- Tooltip component for hover hints
 
 local Creator = require(script.Parent.Parent.Creator)
@@ -6,7 +5,7 @@ local Tween = require(script.Parent.Parent.Utils.Tween)
 
 local Tooltip = {}
 
-function Tooltip.Attach(target: GuiObject, text: string)
+function Tooltip.Attach(target, text)
     local tooltip = Creator.New("TextLabel", {
         Name = "Tooltip",
         Size = UDim2.fromOffset(120, 26),

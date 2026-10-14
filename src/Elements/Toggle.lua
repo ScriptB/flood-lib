@@ -1,4 +1,3 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
@@ -6,7 +5,7 @@ local Signal       = require(script.Parent.Parent.Utils.Signal)
 
 local Toggle = {}
 
-function Toggle.Create(parent: Instance, id: string, config: { Title: string, Default: boolean?, Callback: ((boolean) -> ())? })
+function Toggle.Create(parent, id, config)
 	local value     = config.Default or false
 	local onChanged = Signal.new()
 	local theme     = ThemeManager.CurrentTheme
@@ -45,7 +44,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 		AnchorPoint      = Vector2.new(1, 0.5),
 		Position         = UDim2.new(1, -9, 0.5, 0),
 		Size             = UDim2.fromOffset(30, 16),
-		BackgroundColor3 = if value then theme.Accent else theme.BadgeBg,
+		BackgroundColor3 = (function() if value then return theme.Accent else return theme.BadgeBg end end)(),
 		BorderSizePixel  = 0,
 		Parent           = container,
 	}, {
@@ -58,7 +57,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 	local knob = Creator.New("Frame", {
 		Name             = "Knob",
 		AnchorPoint      = Vector2.new(0, 0.5),
-		Position         = if value then knobOn else knobOff,
+		Position         = (function() if value then return knobOn else return knobOff end end)(),
 		Size             = UDim2.fromOffset(12, 12),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BorderSizePixel  = 0,
@@ -81,7 +80,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 		Tween.Play(container, Tween.Fast, { BackgroundColor3 = theme.ControlBg })
 	end)
 
-	local function updateVisual(state: boolean)
+	local function updateVisual(state)
 		if state then
 			Tween.SpringAnimate(knob,        { Position         = knobOn        }, Tween.SpringPop)
 			Tween.SpringAnimate(switchTrack, { BackgroundColor3 = theme.Accent  }, Tween.SpringSettle)
@@ -96,7 +95,7 @@ function Toggle.Create(parent: Instance, id: string, config: { Title: string, De
 		OnChanged = onChanged,
 	}
 
-	function toggleObj:SetValue(newVal: boolean)
+	function toggleObj:SetValue(newVal)
 		value = newVal
 		toggleObj.Value = newVal
 		updateVisual(newVal)

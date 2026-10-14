@@ -1,4 +1,3 @@
---!strict
 local RunService   = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Spring       = require(script.Parent.Spring)
@@ -13,47 +12,42 @@ Tween.Pop    = TweenInfo.new(0.12, Enum.EasingStyle.Back,        Enum.EasingDire
 Tween.Settle = TweenInfo.new(0.28, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 Tween.Slug   = TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 
-export type SpringPreset = { Speed: number, Damper: number }
-export type SpringHandle = { Cancel: () -> () }
 
-Tween.SpringPop    = { Speed = 32, Damper = 0.82 } :: SpringPreset
-Tween.SpringSettle = { Speed = 20, Damper = 0.78 } :: SpringPreset
-Tween.SpringSlug   = { Speed = 14, Damper = 0.72 } :: SpringPreset
+Tween.SpringPop    = { Speed = 32, Damper = 0.82 }
+Tween.SpringSettle = { Speed = 20, Damper = 0.78 }
+Tween.SpringSlug   = { Speed = 14, Damper = 0.72 }
 
-type Channel = {
-	tick:     (dt: number) -> (),
-	settled:  () -> boolean,
-	finalize: () -> (),
-}
 
-function Tween.Play(instance: Instance, tweenInfo: TweenInfo, properties: { [string]: any }): Tween
+function Tween.Play(instance, tweenInfo, properties)
 	local tween = TweenService:Create(instance, tweenInfo, properties)
 	tween:Play()
 	return tween
 end
 
-function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, preset: SpringPreset?): SpringHandle
-	local speed  = if preset then preset.Speed  else 20
-	local damper = if preset then preset.Damper else 0.78
-	local inst   = instance :: any
+function Tween.SpringAnimate(instance, props, preset)
+	local speed
+	if preset then speed = preset.Speed else speed = 20 end
+	local damper
+	if preset then damper = preset.Damper else damper = 0.78 end
+	local inst   = instance
 
-	local channels: { Channel } = {}
+	local channels= {}
 
 	for key, target in props do
 		local current = inst[key]
 		local vtype   = typeof(current)
 
 		if vtype == "number" then
-			local s = Spring.new(current :: number, speed, damper)
-			s:SetTarget(target :: number)
+			local s = Spring.new(current, speed, damper)
+			s:SetTarget(target)
 			table.insert(channels, {
 				tick     = function(dt) s:Step(dt); inst[key] = s.Position end,
 				settled  = function() return s:IsSettled() end,
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "Color3" then
-			local c  = current :: Color3
-			local tg = target  :: Color3
+			local c  = current
+			local tg = target
 			local sr = Spring.new(c.R, speed, damper)
 			local sg = Spring.new(c.G, speed, damper)
 			local sb = Spring.new(c.B, speed, damper)
@@ -71,8 +65,8 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "UDim2" then
-			local c  = current :: UDim2
-			local tg = target  :: UDim2
+			local c  = current
+			local tg = target
 			local sxs = Spring.new(c.X.Scale,  speed, damper)
 			local sxo = Spring.new(c.X.Offset, speed, damper)
 			local sys = Spring.new(c.Y.Scale,  speed, damper)
@@ -94,8 +88,8 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 				finalize = function() inst[key] = target end,
 			})
 		elseif vtype == "Vector2" then
-			local c  = current :: Vector2
-			local tg = target  :: Vector2
+			local c  = current
+			local tg = target
 			local sx = Spring.new(c.X, speed, damper)
 			local sy = Spring.new(c.Y, speed, damper)
 			sx:SetTarget(tg.X); sy:SetTarget(tg.Y)
@@ -108,9 +102,9 @@ function Tween.SpringAnimate(instance: Instance, props: { [string]: any }, prese
 	end
 
 	local cancelled = false
-	local connection: RBXScriptConnection
+	local connection
 
-	connection = RunService.Heartbeat:Connect(function(dt: number)
+	connection = RunService.Heartbeat:Connect(function(dt)
 		if cancelled then
 			connection:Disconnect()
 			return

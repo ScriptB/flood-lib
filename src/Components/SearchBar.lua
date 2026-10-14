@@ -1,4 +1,3 @@
---!strict
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Creator          = require(script.Parent.Parent.Creator)
@@ -10,20 +9,14 @@ local BAR_H  = 34
 local GAP    = 10
 local CORNER = 8
 
-export type SearchEntry = {
-	Id:       string,
-	Label:    string,
-	TabId:    string,
-	SelectFn: () -> (),
-}
 
 local SearchBar = {}
 SearchBar.__index = SearchBar
 
-function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, width: number): any
+function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local self       = setmetatable({}, SearchBar)
-	self._entries    = {} :: { SearchEntry }
-	self._resultFrames = {} :: { Frame }
+	self._entries    = {}
+	self._resultFrames = {}
 	self._query      = ""
 
 	local t = ThemeManager.CurrentTheme
@@ -140,12 +133,12 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 	self._input        = input
 	self._resultsFrame = resultsFrame
 
-	local sprX = Spring.new(bar.Position.X.Offset :: number, 18, 0.80)
-	local sprY = Spring.new(bar.Position.Y.Offset :: number, 18, 0.80)
+	local sprX = Spring.new(bar.Position.X.Offset, 18, 0.80)
+	local sprY = Spring.new(bar.Position.Y.Offset, 18, 0.80)
 	self._sprX = sprX
 	self._sprY = sprY
 
-	local heartbeat = RunService.Heartbeat:Connect(function(dt: number)
+	local heartbeat = RunService.Heartbeat:Connect(function(dt)
 		sprX:Step(dt)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
@@ -159,7 +152,7 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 		self:_Refresh(input.Text)
 	end)
 
-	input.FocusLost:Connect(function(enterPressed: boolean)
+	input.FocusLost:Connect(function(enterPressed)
 		if enterPressed then
 			self:_SelectFirst()
 		end
@@ -176,7 +169,7 @@ function SearchBar.new(screenGui: ScreenGui, anchorX: number, anchorY: number, w
 		end
 	end)
 
-	UserInputService.InputBegan:Connect(function(inp: InputObject, processed: boolean)
+	UserInputService.InputBegan:Connect(function(inp, processed)
 		if processed then return end
 		if inp.KeyCode == Enum.KeyCode.Slash then
 			input:CaptureFocus()
@@ -193,7 +186,7 @@ function SearchBar:_ClearResults()
 	self._resultFrames = {}
 end
 
-function SearchBar:_Refresh(query: string)
+function SearchBar:_Refresh(query)
 	self._query = query
 	self:_ClearResults()
 
@@ -203,7 +196,7 @@ function SearchBar:_Refresh(query: string)
 	end
 
 	local lower = string.lower(query)
-	local matches: { SearchEntry } = {}
+	local matches= {}
 	for _, e in ipairs(self._entries) do
 		if string.find(string.lower(e.Label), lower, 1, true) then
 			table.insert(matches, e)
@@ -267,22 +260,22 @@ end
 
 function SearchBar:_SelectFirst()
 	if #self._resultFrames > 0 then
-		(self._resultFrames[1] :: TextButton).MouseButton1Click:Fire()
+		(self._resultFrames[1]).MouseButton1Click:Fire()
 	end
 end
 
-function SearchBar:RegisterElement(entry: SearchEntry)
+function SearchBar:RegisterElement(entry)
 	table.insert(self._entries, entry)
 end
 
-function SearchBar:Follow(x: number, y: number, width: number)
+function SearchBar:Follow(x, y, width)
 	self._sprX:SetTarget(x)
 	self._sprY:SetTarget(y + GAP)
 	self._bar.Size    = UDim2.fromOffset(width, BAR_H)
 	self._shadow.Size = UDim2.fromOffset(width + 8, BAR_H + 8)
 end
 
-function SearchBar:SetVisible(visible: boolean)
+function SearchBar:SetVisible(visible)
 	self._bar.Visible    = visible
 	self._shadow.Visible = visible
 	if not visible then

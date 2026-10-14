@@ -1,4 +1,3 @@
---!strict
 local RunService   = game:GetService("RunService")
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
@@ -12,18 +11,13 @@ local BTN_SZ   = 36
 local CORNER   = 10
 local GAP_TOP  = 8
 
-export type SidebarEntry = {
-	Id:     string,
-	Icon:   string,
-	OnClick: () -> (),
-}
 
 local EdgeSidebar = {}
 EdgeSidebar.__index = EdgeSidebar
 
-function EdgeSidebar.new(screenGui: ScreenGui, anchorY: number, height: number): any
+function EdgeSidebar.new(screenGui, anchorY, height)
 	local self    = setmetatable({}, EdgeSidebar)
-	self._entries = {} :: { SidebarEntry }
+	self._entries = {}
 	self._shown   = false
 
 	local t = ThemeManager.CurrentTheme
@@ -87,14 +81,14 @@ function EdgeSidebar.new(screenGui: ScreenGui, anchorY: number, height: number):
 	self._height  = height
 	self._anchorY = anchorY
 
-	local hiddenX  = -CLIP_W :: number
-	local shownX   = 0       :: number
+	local hiddenX  = -CLIP_W
+	local shownX   = 0
 	local sprX     = Spring.new(hiddenX, 22, 0.82)
 	self._sprX     = sprX
 	self._hiddenX  = hiddenX
 	self._shownX   = shownX
 
-	local conn = RunService.Heartbeat:Connect(function(dt: number)
+	local conn = RunService.Heartbeat:Connect(function(dt)
 		sprX:Step(dt)
 		local x = math.round(sprX.Position)
 		clipper.Position = UDim2.fromOffset(x, self._anchorY)
@@ -136,11 +130,11 @@ function EdgeSidebar:_AddRestoreButton()
 	self._restoreSignal = btn.MouseButton1Click
 end
 
-function EdgeSidebar:OnRestore(fn: () -> ())
+function EdgeSidebar:OnRestore(fn)
 	self._restoreConn = self._restoreSignal:Connect(fn)
 end
 
-function EdgeSidebar:AddEntry(entry: SidebarEntry)
+function EdgeSidebar:AddEntry(entry)
 	table.insert(self._entries, entry)
 	local t     = ThemeManager.CurrentTheme
 	local order = #self._entries + 1
@@ -184,7 +178,7 @@ function EdgeSidebar:Hide()
 	self._sprX:SetTarget(self._hiddenX)
 end
 
-function EdgeSidebar:Reposition(anchorY: number, height: number)
+function EdgeSidebar:Reposition(anchorY, height)
 	self._anchorY = anchorY
 	self._height  = height
 	self._clipper.Size = UDim2.fromOffset(CLIP_W, height)

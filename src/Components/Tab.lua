@@ -1,4 +1,3 @@
---!strict
 local Creator = require(script.Parent.Parent.Creator)
 local Section = require(script.Parent.Section)
 local Tween   = require(script.Parent.Parent.Utils.Tween)
@@ -6,7 +5,7 @@ local Tween   = require(script.Parent.Parent.Utils.Tween)
 local Tab = {}
 Tab.__index = Tab
 
-function Tab.new(window: any, config: { Title: string, Icon: string? }): any
+function Tab.new(window, config)
 	local self   = setmetatable({}, Tab)
 	self.Window  = window
 	self.Title   = config.Title
@@ -90,23 +89,23 @@ function Tab.new(window: any, config: { Title: string, Icon: string? }): any
 	return self
 end
 
-function Tab:AddSection(title: string?, column: number?): any
-	self._sectionCount += 1
+function Tab:AddSection(title, column)
+	self._sectionCount = self._sectionCount + 1
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
 	sec._frame.LayoutOrder = self._sectionCount
 	return sec
 end
 
-function Tab:AddLeftSection(title: string?): any
+function Tab:AddLeftSection(title)
 	return self:AddSection(title, 1)
 end
 
-function Tab:AddRightSection(title: string?): any
+function Tab:AddRightSection(title)
 	return self:AddSection(title, 2)
 end
 
-function Tab:SetVisible(visible: boolean)
+function Tab:SetVisible(visible)
 	self._page.Visible = visible
 	self.Active = visible
 end

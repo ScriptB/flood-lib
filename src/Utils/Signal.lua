@@ -1,30 +1,18 @@
---!strict
 -- High-performance micro-signal implementation for Flood UI Library
 
 local Signal = {}
 Signal.__index = Signal
 
-export type Connection = {
-    Disconnect: (self: Connection) -> (),
-    Connected: boolean,
-}
 
-export type Signal<T...> = {
-    Connect: (self: Signal<T...>, fn: (T...) -> ()) -> Connection,
-    Once: (self: Signal<T...>, fn: (T...) -> ()) -> Connection,
-    Fire: (self: Signal<T...>, T...) -> (),
-    Wait: (self: Signal<T...>) -> T...,
-    Destroy: (self: Signal<T...>) -> (),
-}
 
-function Signal.new<T...>(): Signal<T...>
+function Signal.new()
     local self = setmetatable({
         _handlers = {},
     }, Signal)
-    return (self :: any)
+    return (self)
 end
 
-function Signal:Connect(fn: (...any) -> ()): Connection
+function Signal:Connect(fn)
     table.insert(self._handlers, fn)
     local connected = true
     local handlers = self._handlers
@@ -46,8 +34,8 @@ function Signal:Connect(fn: (...any) -> ()): Connection
     return conn
 end
 
-function Signal:Once(fn: (...any) -> ()): Connection
-    local conn: Connection
+function Signal:Once(fn)
+    local conn
     conn = self:Connect(function(...)
         conn:Disconnect()
         fn(...)
@@ -55,13 +43,13 @@ function Signal:Once(fn: (...any) -> ()): Connection
     return conn
 end
 
-function Signal:Fire(...: any)
+function Signal:Fire(...)
     for _, handler in ipairs(table.clone(self._handlers)) do
         task.spawn(handler, ...)
     end
 end
 
-function Signal:Wait(): ...any
+function Signal:Wait()
     local thread = coroutine.running()
     self:Once(function(...)
         task.spawn(thread, ...)

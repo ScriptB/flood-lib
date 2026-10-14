@@ -1,4 +1,3 @@
---!strict
 local Creator      = require(script.Parent.Parent.Creator)
 local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Toggle       = require(script.Parent.Parent.Elements.Toggle)
@@ -14,7 +13,7 @@ local Divider      = require(script.Parent.Parent.Elements.Divider)
 local Section = {}
 Section.__index = Section
 
-function Section.new(parent: Instance, title: string?)
+function Section.new(parent, title)
     local self = setmetatable({}, Section)
     local theme = ThemeManager.CurrentTheme
 
@@ -69,60 +68,60 @@ function Section.new(parent: Instance, title: string?)
     return self
 end
 
-local function nextOrder(self: any): number
+local function nextOrder(self)
     self._order = self._order + 1
     return self._order
 end
 
-function Section:AddToggle(id: string, config: { Title: string, Default: boolean?, Callback: ((boolean) -> ())? })
+function Section:AddToggle(id, config)
     local obj = Toggle.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Toggle_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Toggle_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddSlider(id: string, config: { Title: string, Min: number, Max: number, Default: number?, Rounding: number?, Suffix: string?, Callback: ((number) -> ())? })
+function Section:AddSlider(id, config)
     local obj = Slider.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Slider_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Slider_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddButton(config: { Title: string, Description: string?, Callback: (() -> ())? })
+function Section:AddButton(config)
     local frame = Button.Create(self.Container, config)
     frame.LayoutOrder = nextOrder(self)
     return frame
 end
 
-function Section:AddDropdown(id: string, config: { Title: string, Values: { string }, Default: string?, Callback: ((string) -> ())? })
+function Section:AddDropdown(id, config)
     local obj = Dropdown.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Dropdown_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Dropdown_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddInput(id: string, config: { Title: string, Default: string?, Placeholder: string?, Callback: ((string) -> ())? })
+function Section:AddInput(id, config)
     local obj = Input.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Input_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Input_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddKeybind(id: string, config: { Title: string, Default: Enum.KeyCode?, Callback: ((Enum.KeyCode) -> ())? })
+function Section:AddKeybind(id, config)
     local obj = Keybind.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Keybind_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Keybind_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddColorpicker(id: string, config: { Title: string, Default: Color3?, Callback: ((Color3) -> ())? })
+function Section:AddColorpicker(id, config)
     local obj = Colorpicker.Create(self.Container, id, config)
-    local frame = self.Container:FindFirstChild("Colorpicker_" .. id) :: Frame?
+    local frame = self.Container:FindFirstChild("Colorpicker_" .. id)
     if frame then frame.LayoutOrder = nextOrder(self) end
     return obj
 end
 
-function Section:AddParagraph(config: { Title: string, Content: string })
+function Section:AddParagraph(config)
     local frame = Paragraph.Create(self.Container, config)
     frame.LayoutOrder = nextOrder(self)
     return frame
