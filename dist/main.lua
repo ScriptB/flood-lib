@@ -2651,21 +2651,6 @@ local function labelText(entry)
 	return LABELS[entry.Icon] or string.upper(string.sub(entry.Label, 1, 8))
 end
 
-local function glassGradient()
-	return Creator.New("UIGradient", {
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0,    Color3.fromRGB(30, 44, 64)),
-			ColorSequenceKeypoint.new(0.42, Color3.fromRGB(10, 14, 22)),
-			ColorSequenceKeypoint.new(1,    Color3.fromRGB(5,   7, 14)),
-		}),
-		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.08),
-			NumberSequenceKeypoint.new(1, 0.22),
-		}),
-		Rotation = 155,
-	})
-end
-
 function FloatingNav.new(screenGui, anchorX, anchorY, height)
 	local self    = setmetatable({}, FloatingNav)
 	self._entries = {}
@@ -2675,23 +2660,12 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 
 	local t = ThemeManager.CurrentTheme
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "NavShadow",
-		Position               = UDim2.fromOffset(anchorX - GAP - NAV_W - 5, anchorY - 5),
-		Size                   = UDim2.fromOffset(NAV_W + 10, height + 10),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.6,
-		BorderSizePixel        = 0,
-		ZIndex                 = 3,
-		Parent                 = screenGui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local panel = Creator.New("Frame", {
 		Name                   = "FloatingNav",
 		Position               = UDim2.fromOffset(anchorX - GAP - NAV_W, anchorY),
 		Size                   = UDim2.fromOffset(NAV_W, height),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 4,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -2711,11 +2685,9 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 			Padding             = UDim.new(0, 2),
 		}),
 		Creator.New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8) }),
-		glassGradient(),
 	})
 
-	self._panel  = panel
-	self._shadow = shadow
+	self._panel = panel
 
 	local sprX = Spring.new(panel.Position.X.Offset, 18, 0.80)
 	local sprY = Spring.new(panel.Position.Y.Offset, 18, 0.80)
@@ -2728,8 +2700,7 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
 		local y = math.round(sprY.Position)
-		panel.Position  = UDim2.fromOffset(x, y)
-		shadow.Position = UDim2.fromOffset(x - 5, y - 5)
+		panel.Position = UDim2.fromOffset(x, y)
 	end)
 	self._conn = conn
 
@@ -2854,13 +2825,11 @@ function FloatingNav:Follow(x, y, height)
 	if not self._attached then return end
 	self._sprX:SetTarget(x - GAP - NAV_W)
 	self._sprY:SetTarget(y)
-	self._panel.Size  = UDim2.fromOffset(NAV_W, height)
-	self._shadow.Size = UDim2.fromOffset(NAV_W + 10, height + 10)
+	self._panel.Size = UDim2.fromOffset(NAV_W, height)
 end
 
 function FloatingNav:SetVisible(visible)
-	self._panel.Visible  = visible
-	self._shadow.Visible = visible
+	self._panel.Visible = visible
 end
 
 function FloatingNav:GetWidth()
@@ -2874,7 +2843,6 @@ end
 function FloatingNav:Destroy()
 	self._conn:Disconnect()
 	self._panel:Destroy()
-	self._shadow:Destroy()
 end
 
 return FloatingNav
@@ -2904,23 +2872,12 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 
 	local t = ThemeManager.CurrentTheme
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "SearchShadow",
-		Position               = UDim2.fromOffset(anchorX - 4, anchorY + GAP - 4),
-		Size                   = UDim2.fromOffset(width + 8, BAR_H + 8),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.62,
-		BorderSizePixel        = 0,
-		ZIndex                 = 3,
-		Parent                 = screenGui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local bar = Creator.New("Frame", {
 		Name                   = "SearchBar",
 		Position               = UDim2.fromOffset(anchorX, anchorY + GAP),
 		Size                   = UDim2.fromOffset(width, BAR_H),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 4,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -2933,17 +2890,6 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 			Transparency    = 0.40,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 			ThemeTag        = { Color = "Border" },
-		}),
-		Creator.New("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0,   Color3.fromRGB(16, 28, 40)),
-				ColorSequenceKeypoint.new(1,   Color3.fromRGB(8,  13, 20)),
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.05),
-				NumberSequenceKeypoint.new(1, 0.18),
-			}),
-			Rotation = 90,
 		}),
 	})
 
@@ -3012,7 +2958,6 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	})
 
 	self._bar          = bar
-	self._shadow       = shadow
 	self._input        = input
 	self._resultsFrame = resultsFrame
 
@@ -3026,8 +2971,7 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
 		local y = math.round(sprY.Position)
-		bar.Position    = UDim2.fromOffset(x, y)
-		shadow.Position = UDim2.fromOffset(x - 4, y - 4)
+		bar.Position = UDim2.fromOffset(x, y)
 	end)
 	self._heartbeat = heartbeat
 
@@ -3154,13 +3098,11 @@ end
 function SearchBar:Follow(x, y, width)
 	self._sprX:SetTarget(x)
 	self._sprY:SetTarget(y + GAP)
-	self._bar.Size    = UDim2.fromOffset(width, BAR_H)
-	self._shadow.Size = UDim2.fromOffset(width + 8, BAR_H + 8)
+	self._bar.Size = UDim2.fromOffset(width, BAR_H)
 end
 
 function SearchBar:SetVisible(visible)
-	self._bar.Visible    = visible
-	self._shadow.Visible = visible
+	self._bar.Visible = visible
 	if not visible then
 		self._resultsFrame.Visible = false
 	end
@@ -3169,7 +3111,6 @@ end
 function SearchBar:Destroy()
 	self._heartbeat:Disconnect()
 	self._bar:Destroy()
-	self._shadow:Destroy()
 end
 
 return SearchBar
@@ -3538,7 +3479,7 @@ function EdgeSidebar.new(screenGui, anchorY, height)
 		Position               = UDim2.fromOffset(INNER_OX, 0),
 		Size                   = UDim2.fromOffset(INNER_W, height),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 8,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -3561,17 +3502,6 @@ function EdgeSidebar.new(screenGui, anchorY, height)
 			PaddingTop    = UDim.new(0, GAP_TOP),
 			PaddingBottom = UDim.new(0, GAP_TOP),
 			PaddingLeft   = UDim.new(0, INNER_W - CLIP_W),
-		}),
-		Creator.New("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 36, 52)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(8,  13, 20)),
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.06),
-				NumberSequenceKeypoint.new(1, 0.20),
-			}),
-			Rotation = 90,
 		}),
 	})
 
@@ -4065,17 +3995,6 @@ function Window.new(config)
 	local startX   = startPos.X.Offset
 	local startY   = startPos.Y.Offset
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "Shadow",
-		Position               = UDim2.fromOffset(startX - 8, startY - 8),
-		Size                   = UDim2.fromOffset(MAIN_W + 16, MAIN_H + 16),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.52,
-		BorderSizePixel        = 0,
-		ZIndex                 = 1,
-		Parent                 = gui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local main = Creator.New("Frame", {
 		Name                   = "MainFrame",
 		Position               = UDim2.fromOffset(startX, startY),
@@ -4146,17 +4065,17 @@ function Window.new(config)
 		Parent                 = topBar,
 	})
 
-	local function makeCtrl(label, anchorOffsetX)
+	local function makeMinimizeButton()
 		local btn = Creator.New("TextButton", {
-			Name                   = label,
+			Name                   = "Minimize",
 			AnchorPoint            = Vector2.new(1, 0.5),
-			Position               = UDim2.new(1, anchorOffsetX, 0.5, 0),
-			Size                   = UDim2.fromOffset(24, 24),
+			Position               = UDim2.new(1, -8, 0.5, 0),
+			Size                   = UDim2.fromOffset(28, 24),
 			BackgroundColor3       = t.ControlBg,
-			BackgroundTransparency = 0.70,
-			Text                   = label == "Close" and "✕" or "─",
-			TextSize               = 9,
-			FontFace               = Font.fromEnum(Enum.Font.Gotham),
+			BackgroundTransparency = 0.25,
+			Text                   = "◀",
+			TextSize               = 11,
+			FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 			TextColor3             = t.SubText,
 			AutoButtonColor        = false,
 			BorderSizePixel        = 0,
@@ -4165,17 +4084,15 @@ function Window.new(config)
 			Parent                 = topBar,
 		}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, 5) }) })
 		btn.MouseEnter:Connect(function()
-			local hoverColor = label == "Close" and ThemeManager.CurrentTheme.CloseHover or ThemeManager.CurrentTheme.ControlHover
-			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = hoverColor, BackgroundTransparency = 0 })
+			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlHover, BackgroundTransparency = 0 })
 		end)
 		btn.MouseLeave:Connect(function()
-			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlBg, BackgroundTransparency = 0.70 })
+			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlBg, BackgroundTransparency = 0.25 })
 		end)
 		return btn
 	end
 
-	local closeBtn    = makeCtrl("Close",    -8)
-	local minimizeBtn = makeCtrl("Minimize", -36)
+	local minimizeBtn = makeMinimizeButton()
 
 	local content = Creator.New("Frame", {
 		Name                   = "ContentContainer",
@@ -4190,7 +4107,6 @@ function Window.new(config)
 
 	self._gui     = gui
 	self._main    = main
-	self._shadow  = shadow
 	self._topBar  = topBar
 	self._content = content
 	self.ContentContainer = content
@@ -4225,7 +4141,6 @@ function Window.new(config)
 		local p = main.Position
 		local x = p.X.Offset
 		local y = p.Y.Offset
-		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
 			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
@@ -4234,7 +4149,6 @@ function Window.new(config)
 	end
 
 	local dragHandle = Drag.Attach(topBar, main, function(x, y)
-		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
 			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
@@ -4243,9 +4157,6 @@ function Window.new(config)
 	end)
 	self._dragHandle = dragHandle
 
-	closeBtn.MouseButton1Click:Connect(function()
-		self:ToggleMinimize()
-	end)
 	minimizeBtn.MouseButton1Click:Connect(function()
 		self:ToggleMinimize()
 	end)

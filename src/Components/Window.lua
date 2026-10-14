@@ -45,17 +45,6 @@ function Window.new(config)
 	local startX   = startPos.X.Offset
 	local startY   = startPos.Y.Offset
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "Shadow",
-		Position               = UDim2.fromOffset(startX - 8, startY - 8),
-		Size                   = UDim2.fromOffset(MAIN_W + 16, MAIN_H + 16),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.52,
-		BorderSizePixel        = 0,
-		ZIndex                 = 1,
-		Parent                 = gui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local main = Creator.New("Frame", {
 		Name                   = "MainFrame",
 		Position               = UDim2.fromOffset(startX, startY),
@@ -126,17 +115,17 @@ function Window.new(config)
 		Parent                 = topBar,
 	})
 
-	local function makeCtrl(label, anchorOffsetX)
+	local function makeMinimizeButton()
 		local btn = Creator.New("TextButton", {
-			Name                   = label,
+			Name                   = "Minimize",
 			AnchorPoint            = Vector2.new(1, 0.5),
-			Position               = UDim2.new(1, anchorOffsetX, 0.5, 0),
-			Size                   = UDim2.fromOffset(24, 24),
+			Position               = UDim2.new(1, -8, 0.5, 0),
+			Size                   = UDim2.fromOffset(28, 24),
 			BackgroundColor3       = t.ControlBg,
-			BackgroundTransparency = 0.70,
-			Text                   = label == "Close" and "✕" or "─",
-			TextSize               = 9,
-			FontFace               = Font.fromEnum(Enum.Font.Gotham),
+			BackgroundTransparency = 0.25,
+			Text                   = "◀",
+			TextSize               = 11,
+			FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 			TextColor3             = t.SubText,
 			AutoButtonColor        = false,
 			BorderSizePixel        = 0,
@@ -145,17 +134,15 @@ function Window.new(config)
 			Parent                 = topBar,
 		}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, 5) }) })
 		btn.MouseEnter:Connect(function()
-			local hoverColor = label == "Close" and ThemeManager.CurrentTheme.CloseHover or ThemeManager.CurrentTheme.ControlHover
-			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = hoverColor, BackgroundTransparency = 0 })
+			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlHover, BackgroundTransparency = 0 })
 		end)
 		btn.MouseLeave:Connect(function()
-			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlBg, BackgroundTransparency = 0.70 })
+			Tween.Play(btn, Tween.Fast, { BackgroundColor3 = ThemeManager.CurrentTheme.ControlBg, BackgroundTransparency = 0.25 })
 		end)
 		return btn
 	end
 
-	local closeBtn    = makeCtrl("Close",    -8)
-	local minimizeBtn = makeCtrl("Minimize", -36)
+	local minimizeBtn = makeMinimizeButton()
 
 	local content = Creator.New("Frame", {
 		Name                   = "ContentContainer",
@@ -170,7 +157,6 @@ function Window.new(config)
 
 	self._gui     = gui
 	self._main    = main
-	self._shadow  = shadow
 	self._topBar  = topBar
 	self._content = content
 	self.ContentContainer = content
@@ -205,7 +191,6 @@ function Window.new(config)
 		local p = main.Position
 		local x = p.X.Offset
 		local y = p.Y.Offset
-		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
 			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
@@ -214,7 +199,6 @@ function Window.new(config)
 	end
 
 	local dragHandle = Drag.Attach(topBar, main, function(x, y)
-		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
 			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
@@ -223,9 +207,6 @@ function Window.new(config)
 	end)
 	self._dragHandle = dragHandle
 
-	closeBtn.MouseButton1Click:Connect(function()
-		self:ToggleMinimize()
-	end)
 	minimizeBtn.MouseButton1Click:Connect(function()
 		self:ToggleMinimize()
 	end)

@@ -21,23 +21,12 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 
 	local t = ThemeManager.CurrentTheme
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "SearchShadow",
-		Position               = UDim2.fromOffset(anchorX - 4, anchorY + GAP - 4),
-		Size                   = UDim2.fromOffset(width + 8, BAR_H + 8),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.62,
-		BorderSizePixel        = 0,
-		ZIndex                 = 3,
-		Parent                 = screenGui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local bar = Creator.New("Frame", {
 		Name                   = "SearchBar",
 		Position               = UDim2.fromOffset(anchorX, anchorY + GAP),
 		Size                   = UDim2.fromOffset(width, BAR_H),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 4,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -50,17 +39,6 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 			Transparency    = 0.40,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 			ThemeTag        = { Color = "Border" },
-		}),
-		Creator.New("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0,   Color3.fromRGB(16, 28, 40)),
-				ColorSequenceKeypoint.new(1,   Color3.fromRGB(8,  13, 20)),
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.05),
-				NumberSequenceKeypoint.new(1, 0.18),
-			}),
-			Rotation = 90,
 		}),
 	})
 
@@ -129,7 +107,6 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	})
 
 	self._bar          = bar
-	self._shadow       = shadow
 	self._input        = input
 	self._resultsFrame = resultsFrame
 
@@ -143,8 +120,7 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
 		local y = math.round(sprY.Position)
-		bar.Position    = UDim2.fromOffset(x, y)
-		shadow.Position = UDim2.fromOffset(x - 4, y - 4)
+		bar.Position = UDim2.fromOffset(x, y)
 	end)
 	self._heartbeat = heartbeat
 
@@ -271,13 +247,11 @@ end
 function SearchBar:Follow(x, y, width)
 	self._sprX:SetTarget(x)
 	self._sprY:SetTarget(y + GAP)
-	self._bar.Size    = UDim2.fromOffset(width, BAR_H)
-	self._shadow.Size = UDim2.fromOffset(width + 8, BAR_H + 8)
+	self._bar.Size = UDim2.fromOffset(width, BAR_H)
 end
 
 function SearchBar:SetVisible(visible)
-	self._bar.Visible    = visible
-	self._shadow.Visible = visible
+	self._bar.Visible = visible
 	if not visible then
 		self._resultsFrame.Visible = false
 	end
@@ -286,7 +260,6 @@ end
 function SearchBar:Destroy()
 	self._heartbeat:Disconnect()
 	self._bar:Destroy()
-	self._shadow:Destroy()
 end
 
 return SearchBar

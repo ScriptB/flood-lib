@@ -44,21 +44,6 @@ local function labelText(entry)
 	return LABELS[entry.Icon] or string.upper(string.sub(entry.Label, 1, 8))
 end
 
-local function glassGradient()
-	return Creator.New("UIGradient", {
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0,    Color3.fromRGB(30, 44, 64)),
-			ColorSequenceKeypoint.new(0.42, Color3.fromRGB(10, 14, 22)),
-			ColorSequenceKeypoint.new(1,    Color3.fromRGB(5,   7, 14)),
-		}),
-		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.08),
-			NumberSequenceKeypoint.new(1, 0.22),
-		}),
-		Rotation = 155,
-	})
-end
-
 function FloatingNav.new(screenGui, anchorX, anchorY, height)
 	local self    = setmetatable({}, FloatingNav)
 	self._entries = {}
@@ -68,23 +53,12 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 
 	local t = ThemeManager.CurrentTheme
 
-	local shadow = Creator.New("Frame", {
-		Name                   = "NavShadow",
-		Position               = UDim2.fromOffset(anchorX - GAP - NAV_W - 5, anchorY - 5),
-		Size                   = UDim2.fromOffset(NAV_W + 10, height + 10),
-		BackgroundColor3       = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.6,
-		BorderSizePixel        = 0,
-		ZIndex                 = 3,
-		Parent                 = screenGui,
-	}, { Creator.New("UICorner", { CornerRadius = UDim.new(0, CORNER + 2) }) })
-
 	local panel = Creator.New("Frame", {
 		Name                   = "FloatingNav",
 		Position               = UDim2.fromOffset(anchorX - GAP - NAV_W, anchorY),
 		Size                   = UDim2.fromOffset(NAV_W, height),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 4,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -104,11 +78,9 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 			Padding             = UDim.new(0, 2),
 		}),
 		Creator.New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8) }),
-		glassGradient(),
 	})
 
-	self._panel  = panel
-	self._shadow = shadow
+	self._panel = panel
 
 	local sprX = Spring.new(panel.Position.X.Offset, 18, 0.80)
 	local sprY = Spring.new(panel.Position.Y.Offset, 18, 0.80)
@@ -121,8 +93,7 @@ function FloatingNav.new(screenGui, anchorX, anchorY, height)
 		sprY:Step(dt)
 		local x = math.round(sprX.Position)
 		local y = math.round(sprY.Position)
-		panel.Position  = UDim2.fromOffset(x, y)
-		shadow.Position = UDim2.fromOffset(x - 5, y - 5)
+		panel.Position = UDim2.fromOffset(x, y)
 	end)
 	self._conn = conn
 
@@ -247,13 +218,11 @@ function FloatingNav:Follow(x, y, height)
 	if not self._attached then return end
 	self._sprX:SetTarget(x - GAP - NAV_W)
 	self._sprY:SetTarget(y)
-	self._panel.Size  = UDim2.fromOffset(NAV_W, height)
-	self._shadow.Size = UDim2.fromOffset(NAV_W + 10, height + 10)
+	self._panel.Size = UDim2.fromOffset(NAV_W, height)
 end
 
 function FloatingNav:SetVisible(visible)
-	self._panel.Visible  = visible
-	self._shadow.Visible = visible
+	self._panel.Visible = visible
 end
 
 function FloatingNav:GetWidth()
@@ -267,7 +236,6 @@ end
 function FloatingNav:Destroy()
 	self._conn:Disconnect()
 	self._panel:Destroy()
-	self._shadow:Destroy()
 end
 
 return FloatingNav

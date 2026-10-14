@@ -39,7 +39,7 @@ function EdgeSidebar.new(screenGui, anchorY, height)
 		Position               = UDim2.fromOffset(INNER_OX, 0),
 		Size                   = UDim2.fromOffset(INNER_W, height),
 		BackgroundColor3       = t.Panel,
-		BackgroundTransparency = t.Glass,
+		BackgroundTransparency = 0,
 		BorderSizePixel        = 0,
 		ZIndex                 = 8,
 		ThemeTag               = { BackgroundColor3 = "Panel" },
@@ -62,17 +62,6 @@ function EdgeSidebar.new(screenGui, anchorY, height)
 			PaddingTop    = UDim.new(0, GAP_TOP),
 			PaddingBottom = UDim.new(0, GAP_TOP),
 			PaddingLeft   = UDim.new(0, INNER_W - CLIP_W),
-		}),
-		Creator.New("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 36, 52)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(8,  13, 20)),
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.06),
-				NumberSequenceKeypoint.new(1, 0.20),
-			}),
-			Rotation = 90,
 		}),
 	})
 
