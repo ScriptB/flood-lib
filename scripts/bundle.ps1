@@ -113,6 +113,6 @@ $outPath = Join-Path $root $Out
 $outDir  = Split-Path $outPath -Parent
 if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
 
-[System.IO.File]::WriteAllText($outPath, $sb.ToString(), [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText($outPath, $sb.ToString(), [System.Text.UTF8Encoding]::new($false))
 $sz = (Get-Item $outPath).Length
 Write-Host ("Bundle: {0} KB" -f [int]($sz/1024))

@@ -1,4 +1,4 @@
-﻿-- Flood UI Library
+-- Flood UI Library
 -- https://github.com/ScriptB/flood-lib
 local __M = {}
 local function __R(n)
