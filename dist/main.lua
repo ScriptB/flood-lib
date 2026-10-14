@@ -1595,7 +1595,7 @@ function Colorpicker.Create(parent, id, config)
         Size = UDim2.new(1, 0, 0, 28),
         BackgroundColor3 = theme.ControlBg,
         BorderSizePixel = 0,
-        ThemeTag = { BackgroundColor3 = "ControlBg" },
+        ThemeTag = { BackgroundColor3 = "Card" },
         Parent = parent,
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 4) }),
@@ -1989,12 +1989,14 @@ local Paragraph = {}
 
 function Paragraph.Create(parent, config)
     local theme = ThemeManager.CurrentTheme
+    local content = config.Content or ""
+    local hasContent = content ~= ""
 
     local container = Creator.New("Frame", {
         Name = "Paragraph_" .. config.Title,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundColor3 = theme.ControlBg,
+        BackgroundColor3 = theme.Card,
         BorderSizePixel = 0,
         ThemeTag = { BackgroundColor3 = "ControlBg" },
         Parent = parent,
@@ -2007,10 +2009,10 @@ function Paragraph.Create(parent, config)
             ThemeTag = { Color = "Border" },
         }),
         Creator.New("UIPadding", {
-            PaddingTop    = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft   = UDim.new(0, 10),
-            PaddingRight  = UDim.new(0, 10),
+            PaddingTop    = UDim.new(0, 7),
+            PaddingBottom = UDim.new(0, 7),
+            PaddingLeft   = UDim.new(0, 9),
+            PaddingRight  = UDim.new(0, 9),
         }),
         Creator.New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
@@ -2021,8 +2023,8 @@ function Paragraph.Create(parent, config)
             Size = UDim2.new(1, 0, 0, 14),
             BackgroundTransparency = 1,
             Text = config.Title,
-            TextSize = 12,
-            FontFace = Font.fromEnum(Enum.Font.GothamBold),
+            TextSize = 11,
+            FontFace = Font.fromEnum(Enum.Font.GothamMedium),
             TextXAlignment = Enum.TextXAlignment.Left,
             TextColor3 = theme.Text,
             ThemeTag = { TextColor3 = "Text" },
@@ -2033,8 +2035,8 @@ function Paragraph.Create(parent, config)
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
             BackgroundTransparency = 1,
-            Text = config.Content,
-            TextSize = 11,
+            Text = content,
+            TextSize = 10,
             TextWrapped = true,
             FontFace = Font.fromEnum(Enum.Font.Gotham),
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -2042,6 +2044,7 @@ function Paragraph.Create(parent, config)
             TextColor3 = theme.SubText,
             ThemeTag = { TextColor3 = "SubText" },
             LayoutOrder = 2,
+            Visible = hasContent,
         }),
     })
 
@@ -2054,7 +2057,8 @@ function Paragraph.Create(parent, config)
             titleLabel.Text = text
         end,
         SetText = function(_, text)
-            contentLabel.Text = text
+            contentLabel.Text = text or ""
+            contentLabel.Visible = contentLabel.Text ~= ""
         end,
     }
 end
@@ -2350,40 +2354,25 @@ function Section.new(parent, title)
         Name = "Panel_" .. (title or "Group"),
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundColor3 = theme.Card,
-        BackgroundTransparency = 0.04,
+        BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ThemeTag = { BackgroundColor3 = "Card" },
         Parent = parent,
     }, {
-        Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-        Creator.New("UIStroke", {
-            Thickness = 1,
-            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-            Color = theme.Border,
-            ThemeTag = { Color = "Border" },
-        }),
-        Creator.New("UIPadding", {
-            PaddingTop    = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft   = UDim.new(0, 10),
-            PaddingRight  = UDim.new(0, 10),
-        }),
         Creator.New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding   = UDim.new(0, 4),
+            Padding   = UDim.new(0, 6),
         }),
     })
 
     if title and title ~= "" then
         Creator.New("TextLabel", {
             Name = "Header",
-            Size = UDim2.new(1, 0, 0, 18),
+            Size = UDim2.new(1, 0, 0, 16),
             BackgroundTransparency = 1,
             LayoutOrder = 0,
-            Text = title,
-            TextSize = 9,
-            FontFace = Font.fromEnum(Enum.Font.Gotham),
+            Text = string.upper(title),
+            TextSize = 10,
+            FontFace = Font.fromEnum(Enum.Font.GothamMedium),
             TextColor3 = theme.SubText,
             TextXAlignment = Enum.TextXAlignment.Left,
             ThemeTag = { TextColor3 = "SubText" },
@@ -2622,8 +2611,8 @@ local ThemeManager = __R("Manager")
 local Tween        = __R("Tween")
 local Spring       = __R("Spring")
 
-local NAV_W  = 62
-local BTN_SZ = 44
+local NAV_W  = 58
+local BTN_SZ = 42
 local CORNER = 8
 local GAP    = 12
 
@@ -2631,6 +2620,36 @@ local GAP    = 12
 
 local FloatingNav = {}
 FloatingNav.__index = FloatingNav
+
+local ICONS = {
+	["layout-dashboard"] = "▦",
+	["bar-chart"] = "▤",
+	["settings-2"] = "⚙",
+	["egg"] = "◇",
+	["terminal"] = ">_",
+	["globe"] = "◎",
+	["settings"] = "⚙",
+	["star"] = "★",
+}
+
+local LABELS = {
+	["layout-dashboard"] = "HOME",
+	["bar-chart"] = "STATS",
+	["settings-2"] = "FARM",
+	["egg"] = "HATCH",
+	["terminal"] = "LOGS",
+	["globe"] = "WORLD",
+	["settings"] = "SETTINGS",
+	["star"] = "INFO",
+}
+
+local function iconText(icon)
+	return ICONS[icon] or icon
+end
+
+local function labelText(entry)
+	return LABELS[entry.Icon] or string.upper(string.sub(entry.Label, 1, 8))
+end
 
 local function glassGradient()
 	return Creator.New("UIGradient", {
@@ -2725,7 +2744,7 @@ function FloatingNav:AddEntry(entry)
 	local railBtn = Creator.New("Frame", {
 		Name                   = "NavBtn_" .. entry.Id,
 		LayoutOrder            = order,
-		Size                   = UDim2.fromOffset(NAV_W - 12, BTN_SZ),
+		Size                   = UDim2.fromOffset(NAV_W - 10, BTN_SZ),
 		BackgroundColor3       = t.ControlBg,
 		BackgroundTransparency = 1,
 		BorderSizePixel        = 0,
@@ -2746,11 +2765,11 @@ function FloatingNav:AddEntry(entry)
 		Creator.New("TextLabel", {
 			Name                   = "Icon",
 			AnchorPoint            = Vector2.new(0.5, 0),
-			Position               = UDim2.new(0.5, 0, 0, 6),
-			Size                   = UDim2.new(1, 0, 0, 16),
+			Position               = UDim2.new(0.5, 0, 0, 5),
+			Size                   = UDim2.new(1, 0, 0, 18),
 			BackgroundTransparency = 1,
-			Text                   = entry.Icon,
-			TextSize               = 11,
+			Text                   = iconText(entry.Icon),
+			TextSize               = 13,
 			FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 			TextColor3             = t.SubText,
 			ThemeTag               = { TextColor3 = "SubText" },
@@ -2758,10 +2777,10 @@ function FloatingNav:AddEntry(entry)
 		Creator.New("TextLabel", {
 			Name                   = "Label",
 			AnchorPoint            = Vector2.new(0.5, 1),
-			Position               = UDim2.new(0.5, 0, 1, -5),
-			Size                   = UDim2.new(1, -4, 0, 11),
+			Position               = UDim2.new(0.5, 0, 1, -4),
+			Size                   = UDim2.new(1, -4, 0, 10),
 			BackgroundTransparency = 1,
-			Text                   = string.upper(entry.Label),
+			Text                   = labelText(entry),
 			TextSize               = 7,
 			FontFace               = Font.fromEnum(Enum.Font.Gotham),
 			TextColor3             = t.SubText,
@@ -2869,9 +2888,9 @@ local ThemeManager     = __R("Manager")
 local Tween            = __R("Tween")
 local Spring           = __R("Spring")
 
-local BAR_H  = 34
-local GAP    = 10
-local CORNER = 8
+local BAR_H  = 26
+local GAP    = 0
+local CORNER = 6
 
 
 local SearchBar = {}
@@ -2931,11 +2950,11 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local iconLbl = Creator.New("TextLabel", {
 		Name                   = "Icon",
 		AnchorPoint            = Vector2.new(0, 0.5),
-		Position               = UDim2.new(0, 10, 0.5, 0),
+		Position               = UDim2.new(0, 8, 0.5, 0),
 		Size                   = UDim2.fromOffset(14, 14),
 		BackgroundTransparency = 1,
 		Text                   = "⌕",
-		TextSize               = 13,
+		TextSize               = 11,
 		FontFace               = Font.fromEnum(Enum.Font.Gotham),
 		TextColor3             = t.SubText,
 		ZIndex                 = 5,
@@ -2947,13 +2966,13 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local input = Creator.New("TextBox", {
 		Name                        = "Input",
 		AnchorPoint                 = Vector2.new(0, 0.5),
-		Position                    = UDim2.new(0, 30, 0.5, 0),
-		Size                        = UDim2.new(1, -44, 0, 20),
+		Position                    = UDim2.new(0, 26, 0.5, 0),
+		Size                        = UDim2.new(1, -34, 0, 18),
 		BackgroundTransparency      = 1,
 		Text                        = "",
 		PlaceholderText             = "Search",
 		PlaceholderColor3           = t.TextDisabled,
-		TextSize                    = 11,
+		TextSize                    = 10,
 		FontFace                    = Font.fromEnum(Enum.Font.Gotham),
 		TextColor3                  = t.Text,
 		TextXAlignment              = Enum.TextXAlignment.Left,
@@ -3914,7 +3933,7 @@ function Tab.new(window, config)
 	local leftCol = Creator.New("ScrollingFrame", {
 		Name                       = "LeftCol",
 		LayoutOrder                = 1,
-		Size                       = UDim2.new(0.5, -4, 1, 0),
+		Size                       = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency     = 1,
 		BorderSizePixel            = 0,
 		ScrollBarThickness         = 3,
@@ -3942,6 +3961,7 @@ function Tab.new(window, config)
 		CanvasSize                 = UDim2.fromScale(0, 0),
 		ThemeTag                   = { ScrollBarImageColor3 = "Border" },
 		Parent                     = cols,
+		Visible                    = false,
 	}, {
 		Creator.New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -3950,6 +3970,7 @@ function Tab.new(window, config)
 	})
 
 	self._page     = page
+	self._columns  = cols
 	self._leftCol  = leftCol
 	self._rightCol = rightCol
 
@@ -3958,6 +3979,10 @@ end
 
 function Tab:AddSection(title, column)
 	self._sectionCount = self._sectionCount + 1
+	if column == 2 and not self._rightCol.Visible then
+		self._leftCol.Size = UDim2.new(0.5, -4, 1, 0)
+		self._rightCol.Visible = true
+	end
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
 	sec.Container.LayoutOrder = self._sectionCount
@@ -4005,10 +4030,13 @@ local EdgeSidebar  = __R("EdgeSidebar")
 local Dashboard    = __R("Dashboard")
 local LoadingScreen = __R("LoadingScreen")
 
-local MAIN_W   = 680
-local MAIN_H   = 460
-local TOPBAR_H = 38
-local CORNER   = 10
+local MAIN_W   = 620
+local MAIN_H   = 420
+local TOPBAR_H = 36
+local CORNER   = 8
+local SEARCH_W = 230
+local SEARCH_X = MAIN_W - SEARCH_W - 72
+local SEARCH_Y = 5
 
 
 local Window = {}
@@ -4106,10 +4134,10 @@ function Window.new(config)
 		Name                   = "Title",
 		AnchorPoint            = Vector2.new(0, 0.5),
 		Position               = UDim2.new(0, 14, 0.5, 0),
-		Size                   = UDim2.new(0.5, 0, 0, 18),
+		Size                   = UDim2.new(1, -SEARCH_W - 94, 0, 18),
 		BackgroundTransparency = 1,
 		Text                   = config.Title or "Flood",
-		TextSize               = 12,
+		TextSize               = 13,
 		FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 		TextColor3             = t.Text,
 		TextXAlignment         = Enum.TextXAlignment.Left,
@@ -4174,7 +4202,7 @@ function Window.new(config)
 	local searchEnabled = config.Search and config.Search.Enabled
 	local searchBar= nil
 	if searchEnabled then
-		searchBar = SearchBar.new(gui, startX, startY + MAIN_H, MAIN_W)
+		searchBar = SearchBar.new(gui, startX + SEARCH_X, startY + SEARCH_Y, SEARCH_W)
 		self._searchBar = searchBar
 	end
 
@@ -4200,7 +4228,7 @@ function Window.new(config)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
-			searchBar:Follow(x, y + MAIN_H, MAIN_W)
+			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
 		end
 		sidebar:Reposition(y, MAIN_H)
 	end
@@ -4209,7 +4237,7 @@ function Window.new(config)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
-			searchBar:Follow(x, y + MAIN_H, MAIN_W)
+			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
 		end
 		sidebar:Reposition(y, MAIN_H)
 	end)

@@ -10,10 +10,13 @@ local EdgeSidebar  = require(script.Parent.EdgeSidebar)
 local Dashboard    = require(script.Parent.Dashboard)
 local LoadingScreen = require(script.Parent.LoadingScreen)
 
-local MAIN_W   = 680
-local MAIN_H   = 460
-local TOPBAR_H = 38
-local CORNER   = 10
+local MAIN_W   = 620
+local MAIN_H   = 420
+local TOPBAR_H = 36
+local CORNER   = 8
+local SEARCH_W = 230
+local SEARCH_X = MAIN_W - SEARCH_W - 72
+local SEARCH_Y = 5
 
 
 local Window = {}
@@ -111,10 +114,10 @@ function Window.new(config)
 		Name                   = "Title",
 		AnchorPoint            = Vector2.new(0, 0.5),
 		Position               = UDim2.new(0, 14, 0.5, 0),
-		Size                   = UDim2.new(0.5, 0, 0, 18),
+		Size                   = UDim2.new(1, -SEARCH_W - 94, 0, 18),
 		BackgroundTransparency = 1,
 		Text                   = config.Title or "Flood",
-		TextSize               = 12,
+		TextSize               = 13,
 		FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 		TextColor3             = t.Text,
 		TextXAlignment         = Enum.TextXAlignment.Left,
@@ -179,7 +182,7 @@ function Window.new(config)
 	local searchEnabled = config.Search and config.Search.Enabled
 	local searchBar= nil
 	if searchEnabled then
-		searchBar = SearchBar.new(gui, startX, startY + MAIN_H, MAIN_W)
+		searchBar = SearchBar.new(gui, startX + SEARCH_X, startY + SEARCH_Y, SEARCH_W)
 		self._searchBar = searchBar
 	end
 
@@ -205,7 +208,7 @@ function Window.new(config)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
-			searchBar:Follow(x, y + MAIN_H, MAIN_W)
+			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
 		end
 		sidebar:Reposition(y, MAIN_H)
 	end
@@ -214,7 +217,7 @@ function Window.new(config)
 		shadow.Position = UDim2.fromOffset(x - 8, y - 8)
 		nav:Follow(x, y, MAIN_H)
 		if searchBar then
-			searchBar:Follow(x, y + MAIN_H, MAIN_W)
+			searchBar:Follow(x + SEARCH_X, y + SEARCH_Y, SEARCH_W)
 		end
 		sidebar:Reposition(y, MAIN_H)
 	end)

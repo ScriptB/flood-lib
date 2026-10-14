@@ -21,40 +21,25 @@ function Section.new(parent, title)
         Name = "Panel_" .. (title or "Group"),
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundColor3 = theme.Card,
-        BackgroundTransparency = 0.04,
+        BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ThemeTag = { BackgroundColor3 = "Card" },
         Parent = parent,
     }, {
-        Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-        Creator.New("UIStroke", {
-            Thickness = 1,
-            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-            Color = theme.Border,
-            ThemeTag = { Color = "Border" },
-        }),
-        Creator.New("UIPadding", {
-            PaddingTop    = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft   = UDim.new(0, 10),
-            PaddingRight  = UDim.new(0, 10),
-        }),
         Creator.New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding   = UDim.new(0, 4),
+            Padding   = UDim.new(0, 6),
         }),
     })
 
     if title and title ~= "" then
         Creator.New("TextLabel", {
             Name = "Header",
-            Size = UDim2.new(1, 0, 0, 18),
+            Size = UDim2.new(1, 0, 0, 16),
             BackgroundTransparency = 1,
             LayoutOrder = 0,
-            Text = title,
-            TextSize = 9,
-            FontFace = Font.fromEnum(Enum.Font.Gotham),
+            Text = string.upper(title),
+            TextSize = 10,
+            FontFace = Font.fromEnum(Enum.Font.GothamMedium),
             TextColor3 = theme.SubText,
             TextXAlignment = Enum.TextXAlignment.Left,
             ThemeTag = { TextColor3 = "SubText" },

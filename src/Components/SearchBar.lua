@@ -5,9 +5,9 @@ local ThemeManager     = require(script.Parent.Parent.Themes.Manager)
 local Tween            = require(script.Parent.Parent.Utils.Tween)
 local Spring           = require(script.Parent.Parent.Utils.Spring)
 
-local BAR_H  = 34
-local GAP    = 10
-local CORNER = 8
+local BAR_H  = 26
+local GAP    = 0
+local CORNER = 6
 
 
 local SearchBar = {}
@@ -67,11 +67,11 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local iconLbl = Creator.New("TextLabel", {
 		Name                   = "Icon",
 		AnchorPoint            = Vector2.new(0, 0.5),
-		Position               = UDim2.new(0, 10, 0.5, 0),
+		Position               = UDim2.new(0, 8, 0.5, 0),
 		Size                   = UDim2.fromOffset(14, 14),
 		BackgroundTransparency = 1,
 		Text                   = "⌕",
-		TextSize               = 13,
+		TextSize               = 11,
 		FontFace               = Font.fromEnum(Enum.Font.Gotham),
 		TextColor3             = t.SubText,
 		ZIndex                 = 5,
@@ -83,13 +83,13 @@ function SearchBar.new(screenGui, anchorX, anchorY, width)
 	local input = Creator.New("TextBox", {
 		Name                        = "Input",
 		AnchorPoint                 = Vector2.new(0, 0.5),
-		Position                    = UDim2.new(0, 30, 0.5, 0),
-		Size                        = UDim2.new(1, -44, 0, 20),
+		Position                    = UDim2.new(0, 26, 0.5, 0),
+		Size                        = UDim2.new(1, -34, 0, 18),
 		BackgroundTransparency      = 1,
 		Text                        = "",
 		PlaceholderText             = "Search",
 		PlaceholderColor3           = t.TextDisabled,
-		TextSize                    = 11,
+		TextSize                    = 10,
 		FontFace                    = Font.fromEnum(Enum.Font.Gotham),
 		TextColor3                  = t.Text,
 		TextXAlignment              = Enum.TextXAlignment.Left,

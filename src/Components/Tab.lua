@@ -47,7 +47,7 @@ function Tab.new(window, config)
 	local leftCol = Creator.New("ScrollingFrame", {
 		Name                       = "LeftCol",
 		LayoutOrder                = 1,
-		Size                       = UDim2.new(0.5, -4, 1, 0),
+		Size                       = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency     = 1,
 		BorderSizePixel            = 0,
 		ScrollBarThickness         = 3,
@@ -75,6 +75,7 @@ function Tab.new(window, config)
 		CanvasSize                 = UDim2.fromScale(0, 0),
 		ThemeTag                   = { ScrollBarImageColor3 = "Border" },
 		Parent                     = cols,
+		Visible                    = false,
 	}, {
 		Creator.New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -83,6 +84,7 @@ function Tab.new(window, config)
 	})
 
 	self._page     = page
+	self._columns  = cols
 	self._leftCol  = leftCol
 	self._rightCol = rightCol
 
@@ -91,6 +93,10 @@ end
 
 function Tab:AddSection(title, column)
 	self._sectionCount = self._sectionCount + 1
+	if column == 2 and not self._rightCol.Visible then
+		self._leftCol.Size = UDim2.new(0.5, -4, 1, 0)
+		self._rightCol.Visible = true
+	end
 	local col = column == 2 and self._rightCol or self._leftCol
 	local sec = Section.new(col, title)
 	sec.Container.LayoutOrder = self._sectionCount

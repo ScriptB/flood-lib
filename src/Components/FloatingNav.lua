@@ -4,8 +4,8 @@ local ThemeManager = require(script.Parent.Parent.Themes.Manager)
 local Tween        = require(script.Parent.Parent.Utils.Tween)
 local Spring       = require(script.Parent.Parent.Utils.Spring)
 
-local NAV_W  = 62
-local BTN_SZ = 44
+local NAV_W  = 58
+local BTN_SZ = 42
 local CORNER = 8
 local GAP    = 12
 
@@ -13,6 +13,36 @@ local GAP    = 12
 
 local FloatingNav = {}
 FloatingNav.__index = FloatingNav
+
+local ICONS = {
+	["layout-dashboard"] = "▦",
+	["bar-chart"] = "▤",
+	["settings-2"] = "⚙",
+	["egg"] = "◇",
+	["terminal"] = ">_",
+	["globe"] = "◎",
+	["settings"] = "⚙",
+	["star"] = "★",
+}
+
+local LABELS = {
+	["layout-dashboard"] = "HOME",
+	["bar-chart"] = "STATS",
+	["settings-2"] = "FARM",
+	["egg"] = "HATCH",
+	["terminal"] = "LOGS",
+	["globe"] = "WORLD",
+	["settings"] = "SETTINGS",
+	["star"] = "INFO",
+}
+
+local function iconText(icon)
+	return ICONS[icon] or icon
+end
+
+local function labelText(entry)
+	return LABELS[entry.Icon] or string.upper(string.sub(entry.Label, 1, 8))
+end
 
 local function glassGradient()
 	return Creator.New("UIGradient", {
@@ -107,7 +137,7 @@ function FloatingNav:AddEntry(entry)
 	local railBtn = Creator.New("Frame", {
 		Name                   = "NavBtn_" .. entry.Id,
 		LayoutOrder            = order,
-		Size                   = UDim2.fromOffset(NAV_W - 12, BTN_SZ),
+		Size                   = UDim2.fromOffset(NAV_W - 10, BTN_SZ),
 		BackgroundColor3       = t.ControlBg,
 		BackgroundTransparency = 1,
 		BorderSizePixel        = 0,
@@ -128,11 +158,11 @@ function FloatingNav:AddEntry(entry)
 		Creator.New("TextLabel", {
 			Name                   = "Icon",
 			AnchorPoint            = Vector2.new(0.5, 0),
-			Position               = UDim2.new(0.5, 0, 0, 6),
-			Size                   = UDim2.new(1, 0, 0, 16),
+			Position               = UDim2.new(0.5, 0, 0, 5),
+			Size                   = UDim2.new(1, 0, 0, 18),
 			BackgroundTransparency = 1,
-			Text                   = entry.Icon,
-			TextSize               = 11,
+			Text                   = iconText(entry.Icon),
+			TextSize               = 13,
 			FontFace               = Font.fromEnum(Enum.Font.GothamMedium),
 			TextColor3             = t.SubText,
 			ThemeTag               = { TextColor3 = "SubText" },
@@ -140,10 +170,10 @@ function FloatingNav:AddEntry(entry)
 		Creator.New("TextLabel", {
 			Name                   = "Label",
 			AnchorPoint            = Vector2.new(0.5, 1),
-			Position               = UDim2.new(0.5, 0, 1, -5),
-			Size                   = UDim2.new(1, -4, 0, 11),
+			Position               = UDim2.new(0.5, 0, 1, -4),
+			Size                   = UDim2.new(1, -4, 0, 10),
 			BackgroundTransparency = 1,
-			Text                   = string.upper(entry.Label),
+			Text                   = labelText(entry),
 			TextSize               = 7,
 			FontFace               = Font.fromEnum(Enum.Font.Gotham),
 			TextColor3             = t.SubText,

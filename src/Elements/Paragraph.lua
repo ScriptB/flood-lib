@@ -5,14 +5,16 @@ local Paragraph = {}
 
 function Paragraph.Create(parent, config)
     local theme = ThemeManager.CurrentTheme
+    local content = config.Content or ""
+    local hasContent = content ~= ""
 
     local container = Creator.New("Frame", {
         Name = "Paragraph_" .. config.Title,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundColor3 = theme.ControlBg,
+        BackgroundColor3 = theme.Card,
         BorderSizePixel = 0,
-        ThemeTag = { BackgroundColor3 = "ControlBg" },
+        ThemeTag = { BackgroundColor3 = "Card" },
         Parent = parent,
     }, {
         Creator.New("UICorner", { CornerRadius = UDim.new(0, 6) }),
@@ -23,10 +25,10 @@ function Paragraph.Create(parent, config)
             ThemeTag = { Color = "Border" },
         }),
         Creator.New("UIPadding", {
-            PaddingTop    = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft   = UDim.new(0, 10),
-            PaddingRight  = UDim.new(0, 10),
+            PaddingTop    = UDim.new(0, 7),
+            PaddingBottom = UDim.new(0, 7),
+            PaddingLeft   = UDim.new(0, 9),
+            PaddingRight  = UDim.new(0, 9),
         }),
         Creator.New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
@@ -37,8 +39,8 @@ function Paragraph.Create(parent, config)
             Size = UDim2.new(1, 0, 0, 14),
             BackgroundTransparency = 1,
             Text = config.Title,
-            TextSize = 12,
-            FontFace = Font.fromEnum(Enum.Font.GothamBold),
+            TextSize = 11,
+            FontFace = Font.fromEnum(Enum.Font.GothamMedium),
             TextXAlignment = Enum.TextXAlignment.Left,
             TextColor3 = theme.Text,
             ThemeTag = { TextColor3 = "Text" },
@@ -49,8 +51,8 @@ function Paragraph.Create(parent, config)
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
             BackgroundTransparency = 1,
-            Text = config.Content,
-            TextSize = 11,
+            Text = content,
+            TextSize = 10,
             TextWrapped = true,
             FontFace = Font.fromEnum(Enum.Font.Gotham),
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -58,6 +60,7 @@ function Paragraph.Create(parent, config)
             TextColor3 = theme.SubText,
             ThemeTag = { TextColor3 = "SubText" },
             LayoutOrder = 2,
+            Visible = hasContent,
         }),
     })
 
@@ -70,7 +73,8 @@ function Paragraph.Create(parent, config)
             titleLabel.Text = text
         end,
         SetText = function(_, text)
-            contentLabel.Text = text
+            contentLabel.Text = text or ""
+            contentLabel.Visible = contentLabel.Text ~= ""
         end,
     }
 end
