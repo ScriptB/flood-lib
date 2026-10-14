@@ -1,0 +1,10 @@
+{
+  "process": [
+    {
+      "rule": "remove_comments"
+    }
+  ],
+  "generator": {
+    "name": "readable"
+  }
+}

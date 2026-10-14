@@ -1,0 +1,21 @@
+{
+  "name": "Flood-Lib",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Flood": {
+        "$path": "src"
+      },
+      "FloodAddons": {
+        "$path": "addons"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "FloodExample": {
+          "$path": "examples/Example.client.lua"
+        }
+      }
+    }
+  }
+}
